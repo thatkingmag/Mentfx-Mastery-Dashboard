@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mentfx AI Mentor & Tracker</title>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chart.js for visualizations -->
+    <script src="data.js"></script>
+    <script src="masteryData.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="brand clickable-logo" data-tab="dashboard" style="cursor:pointer">
+                <div class="logo"></div>
+                <h2>Mentfx<span>Tracker</span></h2>
+                <div class="creator-tag">By Tshepo Moeletsi</div>
+            </div>
+
+            <!-- Mini Dashboard for Sidebar -->
+            <div class="mini-dashboard glass">
+                <div class="sidebar-chart-wrap">
+                    <canvas id="sidebarPieChart"></canvas>
+                </div>
+                <div class="m-stat">
+                    <span>Mastery</span>
+                    <span id="mini-mastery-txt" class="m-val">0%</span>
+                </div>
+                <div class="progress-bar-bg"><div class="progress-bar-fill" id="mini-mastery-fill" style="background:var(--accent)"></div></div>
+                
+                <div class="m-stat" style="margin-top:0.75rem;">
+                    <span>Webinars</span>
+                    <span id="mini-progress-txt" class="m-val">0%</span>
+                </div>
+                <div class="progress-bar-bg" style="margin-bottom:0;"><div class="progress-bar-fill" id="mini-progress-fill"></div></div>
+            </div>
+
+            <ul class="nav-links">
+                <li class="active" data-tab="dashboard">
+                    <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="3" width="7" height="9"></rect><rect x="14" y="3" width="7" height="5"></rect><rect x="14" y="12" width="7" height="9"></rect><rect x="3" y="16" width="7" height="5"></rect></svg>
+                    <span>Dashboard</span>
+                </li>
+                <li data-tab="mastery">
+                    <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline></svg>
+                    <span>Mastery Course</span>
+                </li>
+                <li data-tab="tracker">
+                    <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                    <span>Webinar Tracker</span>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            
+            <!-- Dashboard View -->
+            <section id="dashboard-view" class="view active">
+                <header>
+                    <h1>Overview</h1>
+                    <div style="display:flex; align-items:center; gap:0.75rem;">
+                        <p>Track your Mentfx progress and gauge your understanding.</p>
+                        <div style="width:1px; height:12px; background:var(--border);"></div>
+                        <div id="dashboard-clock" class="digital-clock" style="font-family:monospace; font-size:0.9rem; color:var(--accent);">00:00:00</div>
+                    </div>
+                </header>
+
+                <div style="padding: 0 1.5rem; margin-bottom: 1rem;">
+                    <h2 style="font-size: 1.1rem; color: var(--accent); opacity: 0.9; margin-bottom: 0.5rem;">Mastery Course Overview</h2>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="metric-card glass">
+                        <h3>Course Completion</h3>
+                        <div class="metric-value" id="mastery-progress-pct">0%</div>
+                        <div class="progress-bar-bg"><div class="progress-bar-fill" id="mastery-progress-fill"></div></div>
+                        <p id="mastery-watched-count">0 / 0 Lessons</p>
+                    </div>
+                    <div class="metric-card glass">
+                        <h3>Active Module</h3>
+                        <div class="metric-value" id="active-module-title" style="font-size: 1rem; height: 3.5rem; display: flex; align-items: center; justify-content: center; line-height: 1.2;">-</div>
+                        <p id="active-module-progress">Starting your journey</p>
+                    </div>
+                    <div class="metric-card glass">
+                        <h3>Mentorship Status</h3>
+                        <div class="metric-value indicator" id="course-status-label" style="font-size: 1.4rem;">New Student</div>
+                        <p>Overall progression level</p>
+                    </div>
+                </div>
+
+                <div style="padding: 0 1.5rem; margin-top: 2rem; margin-bottom: 1rem;">
+                    <h2 style="font-size: 1.1rem; color: var(--accent); opacity: 0.9; margin-bottom: 0.5rem;">Webinar Tracker Overview</h2>
+                </div>
+                
+                <div class="stats-grid">
+                    <div class="metric-card glass" id="webinar-progress-card" style="cursor:pointer">
+                        <h3>Webinar Progress</h3>
+                        <div class="metric-value" id="overall-progress">0%</div>
+                        <div class="progress-bar-bg"><div class="progress-bar-fill" id="progress-fill"></div></div>
+                        <p id="watched-count">0 / 258 Watched</p>
+                    </div>
+                    <div class="metric-card glass" id="active-webinar-card" style="cursor:pointer">
+                        <h3>Active Webinar</h3>
+                        <div class="metric-value" id="active-webinar-title" style="font-size: 1rem; height: 3.5rem; display: flex; align-items: center; justify-content: center; line-height: 1.2;">-</div>
+                        <p id="active-webinar-month">Ready to learn</p>
+                    </div>
+                    <div class="metric-card glass" id="in-progress-card" style="cursor:pointer">
+                        <h3>In Progress</h3>
+                        <div class="metric-value indicator" id="in-progress-count">0</div>
+                        <p>Webinars currently reviewing</p>
+                    </div>
+                </div>
+
+                <div class="charts-wrap">
+                    <div class="chart-card glass">
+                        <h3>Completion by Month</h3>
+                        <canvas id="monthlyChart"></canvas>
+                    </div>
+                    <div class="chart-card glass">
+                        <h3>Status Breakdown</h3>
+                        <canvas id="statusPieChart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Tracker View -->
+            <section id="tracker-view" class="view">
+                <header>
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1.5rem;">
+                        <div>
+                            <h1>Webinar Tracker</h1>
+                            <div style="display:flex; align-items:center; gap:0.75rem; margin-top:0.5rem;">
+                                <p style="opacity:0.6; font-size:0.9rem;">Switch views to manage your learning path.</p>
+                                <div style="width:1px; height:12px; background:var(--border);"></div>
+                                <div id="tracker-clock" class="digital-clock" style="font-size:0.85rem;">00:00:00</div>
+                            </div>
+                        </div>
+                        
+                        <div style="display:flex; flex-direction:column; align-items:flex-end; gap:1rem;">
+                            <!-- View Toggles -->
+                            <div class="view-toggles glass">
+                                <button class="view-btn active" data-mode="list" title="List View">
+                                    <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" height="1.2em" width="1.2em" xmlns="http://www.w3.org/2000/svg"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+                                </button>
+                                <button class="view-btn" data-mode="grid" title="Cards View">
+                                    <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" height="1.2em" width="1.2em" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                                </button>
+                                <button class="view-btn" data-mode="calendar" title="Calendar View">
+                                    <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" height="1.2em" width="1.2em" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="filters">
+                        <select id="status-filter" class="glass-input">
+                            <option value="All">All Statuses</option>
+                            <option value="Not Started">Not Started</option>
+                            <option value="In Progress">In Progress</option>
+                            <option value="Completed">Completed</option>
+                        </select>
+                        <input type="text" id="search-filter" class="glass-input" placeholder="Search webinars...">
+                    </div>
+                </header>
+
+                <div id="tracker-content-area">
+                    <!-- Standard Table (List Mode) -->
+                    <div id="list-mode" class="tracker-mode active">
+                        <div class="table-container glass">
+                            <table id="tracker-table">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Month Group</th>
+                                        <th>Status</th>
+                                        <th>Understanding</th>
+                                        <th>Link</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tracker-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Grid Mode -->
+                    <div id="grid-mode" class="tracker-mode">
+                        <div id="grid-container" class="card-grid"></div>
+                    </div>
+
+                    <!-- Calendar Mode -->
+                    <div id="calendar-mode" class="tracker-mode">
+                        <div id="calendar-container" class="calendar-grid"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Mastery View -->
+            <section id="mastery-view" class="view">
+                <header>
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1.5rem;">
+                        <div>
+                            <h1>Mastery Mentorship</h1>
+                            <div style="display:flex; align-items:center; gap:0.75rem; margin-top:0.5rem;">
+                                <p style="opacity:0.6; font-size:0.9rem;">Master the core principles of the Mentfx strategy.</p>
+                                <div style="width:1px; height:12px; background:var(--border);"></div>
+                                <div id="mastery-progress-text" style="font-weight:700; color:var(--accent); font-size:0.85rem;">0%</div>
+                                <div style="width:80px; height:5px; background:rgba(255,255,255,0.1); border-radius:3px; overflow:hidden;">
+                                    <div id="mastery-progress-bar" style="height:100%; width:0%; background:var(--accent); transition:width 0.5s;"></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="view-toggles glass">
+                            <button class="mastery-view-btn active" data-modemastery="grid" title="Grid View">
+                                <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" height="1.1em" width="1.1em" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                            </button>
+                            <button class="mastery-view-btn" data-modemastery="list" title="List View">
+                                <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" height="1.1em" width="1.1em" xmlns="http://www.w3.org/2000/svg"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+                            </button>
+                        </div>
+                    </div>
+                </header>
+                
+                <div id="mastery-content">
+                    <div id="mastery-grid" class="mastery-grid mastery-mode active">
+                        <!-- Modules injected here -->
+                    </div>
+                    <div id="mastery-list" class="mastery-list-mode mastery-mode">
+                        <table class="glass-table">
+                            <thead>
+                                <tr>
+                                    <th>Status</th>
+                                    <th>Module & Lesson</th>
+                                    <th style="text-align:right">Link</th>
+                                </tr>
+                            </thead>
+                            <tbody id="mastery-list-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+    
+    <div class="global-footer glass" onclick="openProfileModal()" style="cursor:pointer" title="Edit Profile">
+        <div class="user-profile" style="border:none; background:transparent; padding:0; height:auto;">
+            <div id="display-avatar" class="user-avatar" style="width:24px; height:24px; font-size:0.7rem;">TM</div>
+            <span id="display-name" class="user-name" style="font-size:0.8rem; margin-right:1rem;">Tshepo Moeletsi</span>
+        </div>
+        <div style="width:1px; height:15px; background:var(--border); margin: 0 0.5rem;"></div>
+        <span>Above Dreams &copy; 2026</span>
+    </div>
+
+    <!-- Edit Modal -->
+    <div class="modal-overlay" id="edit-modal">
+        <div class="modal-content glass">
+            <h2 id="modal-title">Update Webinar</h2>
+            <div class="form-group">
+                <label>Status</label>
+                <select id="modal-status" class="glass-input">
+                    <option value="Not Started">Not Started</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Completed">Completed</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Comprehension Level: <span id="modal-understanding-val">0</span>/5</label>
+                <input type="range" id="modal-understanding" min="0" max="5" value="0">
+            </div>
+            <div class="form-group">
+                <label>Notes & Key Takeaways</label>
+                <textarea id="modal-notes" class="glass-input" rows="4" placeholder="What did you learn?"></textarea>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveChanges()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Modal -->
+    <div class="modal-overlay" id="profile-modal">
+        <div class="modal-content glass">
+            <h2>Profile Settings</h2>
+            <div class="form-group" style="align-items:center;">
+                <div id="profile-avatar-preview" class="user-avatar" style="width:100px; height:100px; font-size:2.5rem; margin-bottom:1rem; background-size: cover; background-position: center;">TM</div>
+                <input type="file" id="profile-pic-input" style="display:none;" accept="image/*">
+                <button class="btn btn-secondary" onclick="document.getElementById('profile-pic-input').click()" style="font-size:0.8rem; padding:0.5rem 1rem;">Change Photo</button>
+            </div>
+            <div class="form-group">
+                <label>Display Name</label>
+                <input type="text" id="profile-name-input" class="glass-input" placeholder="Enter your name">
+            </div>
+            <div class="form-group">
+                <label>Motto / Tagline</label>
+                <input type="text" id="profile-motto-input" class="glass-input" placeholder="e.g. Above Dreams">
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeProfileModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveProfile()">Save Profile</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
