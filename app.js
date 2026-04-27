@@ -122,6 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ---- Server Sync Logic ---- //
     async function loadFromServer() {
+        if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') return;
         try {
             const res = await fetch('/api/load');
             const data = await res.json();
@@ -149,6 +150,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function saveToServer() {
+        if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') return;
         try {
             const data = {
                 webinars: appData,
