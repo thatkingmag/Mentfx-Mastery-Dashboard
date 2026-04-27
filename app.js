@@ -196,7 +196,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td><span class="status-badge ${statusClass}">${wb.status}</span></td>
                 <td><div style="display:flex; align-items:center; gap:5px;"><span style="color:var(--accent); font-weight:700">${wb.rating || 0}</span>/5</div></td>
                 <td>${linkHtml}</td>
-                <td><button class="btn-action" onclick="openEditModal('${wb.id}', ${index})">Update</button></td>
+                <td><button class="btn-action" onclick="openEditModal('${wb.id}', 'webinar')">Update</button></td>
             `;
             trackerBody.appendChild(row);
         });
@@ -236,7 +236,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="card-rating">Comprehension: ${wb.rating || 0}/5</div>
                 <div class="card-footer">
                     ${linkHtml}
-                    <button class="btn-action" style="flex:1" onclick="openEditModal('${wb.id}', ${index})">Edit & Notes</button>
+                    <button class="btn-action" style="flex:1" onclick="openEditModal('${wb.id}', 'webinar')">Edit & Notes</button>
                 </div>
             `;
             container.appendChild(card);
