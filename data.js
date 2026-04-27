@@ -1,4 +1,4 @@
-﻿const webinarData = [
+const webinarData = [
     {
         "id": "Webinar 1",
         "name": "Webinar 1",
@@ -672,7 +672,7 @@
     {
         "id": "Webinar 68",
         "name": "Webinar 68",
-        "link": "",
+        "link": "https://www.youtube.com/watch?v=81S__ZpO6wM",
         "monthGroup": "September 2022",
         "status": "Not Started",
         "notes": "",
@@ -772,7 +772,7 @@
     {
         "id": "Webinar 78",
         "name": "Webinar 78",
-        "link": "",
+        "link": "https://youtu.be/lgTkQWou4ZE",
         "monthGroup": "November 2022",
         "status": "Not Started",
         "notes": "",
@@ -812,7 +812,7 @@
     {
         "id": "Webinar 82",
         "name": "Webinar 82",
-        "link": "",
+        "link": "https://www.youtube.com/watch?v=ca1KqgnBmuM",
         "monthGroup": "December 2022",
         "status": "Not Started",
         "notes": "",
@@ -902,7 +902,7 @@
     {
         "id": "Webinar 91",
         "name": "Webinar 91",
-        "link": "",
+        "link": "https://www.youtube.com/watch?v=TNAZF1pxx6A",
         "monthGroup": "February 2023",
         "status": "Not Started",
         "notes": "",
@@ -1242,7 +1242,7 @@
     {
         "id": "Webinar 125",
         "name": "Webinar 125",
-        "link": "",
+        "link": "https://youtu.be/VNMPnPZMe9w",
         "monthGroup": "October 2023",
         "status": "Not Started",
         "notes": "",
@@ -2542,7 +2542,7 @@
     {
         "id": "Webinar 254",
         "name": "Webinar 254",
-        "link": "",
+        "link": "https://www.youtube.com/watch?v=4Ss0H4hgHbE",
         "monthGroup": "April 2026",
         "status": "Not Started",
         "notes": "",
