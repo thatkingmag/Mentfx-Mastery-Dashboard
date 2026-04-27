@@ -44,17 +44,31 @@ document.addEventListener('DOMContentLoaded', () => {
         if (stored) {
             appData = JSON.parse(stored);
             
-            // Patch: Correct Webinar 99 date if it was previously saved as May
-            const wb99 = appData.find(w => w.id === 'Webinar 99');
-            if (wb99 && wb99.monthGroup === 'May 2023') {
-                wb99.monthGroup = 'April 2023';
-                localStorage.setItem('mentfxData', JSON.stringify(appData));
-            }
-
-            // Recover from the previous bug that might have saved an empty array
-            if (appData.length === 0 && typeof webinarData !== 'undefined') {
-                appData = webinarData;
-                localStorage.setItem('mentfxData', JSON.stringify(appData));
+            // Sync with source data (webinarData) to get new links, month groups, etc.
+            if (typeof webinarData !== 'undefined') {
+                let hasChanges = false;
+                webinarData.forEach(source => {
+                    const local = appData.find(w => w.id === source.id);
+                    if (local) {
+                        // Update metadata fields if they differ
+                        if (local.link !== source.link || 
+                            local.monthGroup !== source.monthGroup || 
+                            local.name !== source.name) {
+                            local.link = source.link;
+                            local.monthGroup = source.monthGroup;
+                            local.name = source.name;
+                            hasChanges = true;
+                        }
+                    } else {
+                        // Add new webinars that aren't in local storage yet
+                        appData.push(source);
+                        hasChanges = true;
+                    }
+                });
+                
+                if (hasChanges) {
+                    localStorage.setItem('mentfxData', JSON.stringify(appData));
+                }
             }
         } else {
             appData = typeof webinarData !== 'undefined' ? webinarData : [];
