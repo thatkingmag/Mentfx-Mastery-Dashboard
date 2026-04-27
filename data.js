@@ -1,4 +1,4 @@
-const webinarData = [
+﻿const webinarData = [
     {
         "id": "Webinar 1",
         "name": "Webinar 1",

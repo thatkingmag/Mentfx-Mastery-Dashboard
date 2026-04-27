@@ -1,4 +1,4 @@
-const masteryData = [
+﻿const masteryData = [
     {
         module: 0,
         title: "The True Beginning",
@@ -10,7 +10,7 @@ const masteryData = [
         module: 1,
         title: "Introduction",
         lessons: [
-            { id: "m1l1", name: "1.1 – Welcome to the Mentfx private mentorship", link: "https://mentfx.com/courses/mastery-course/lessons/welcome-to-the-mentfx-private-mentorship/" },
+            { id: "m1l1", name: "1.1 â€“ Welcome to the Mentfx private mentorship", link: "https://mentfx.com/courses/mastery-course/lessons/welcome-to-the-mentfx-private-mentorship/" },
             { id: "m1l2", name: "1.2 - Setting up TradingView indicator", link: "https://mentfx.com/courses/mastery-course/lessons/1-2-setting-up-tradingview-indicator/" }
         ]
     },
