@@ -537,11 +537,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const labels = Object.keys(monthCounts);
         const data = Object.values(monthCounts);
 
-        const ctx = document.getElementById('monthlyChart').getContext('2d');
-        
-        if (chartInstance) chartInstance.destroy();
-
-        chartInstance = new Chart(ctx, {
+        if (chartInstance) {
+            chartInstance.data.labels = labels.length ? labels : ['No Data'];
+            chartInstance.data.datasets[0].data = data.length ? data : [0];
+            chartInstance.update();
+        } else {
+            const ctx = document.getElementById('monthlyChart').getContext('2d');
+            chartInstance = new Chart(ctx, {
             type: 'bar',
             data: {
                 labels: labels.length ? labels : ['No Data'],
@@ -571,13 +573,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         });
+        }
 
         // Status Pie Chart
         const notStarted = total - completed - inProgress;
-        const pieCtx = document.getElementById('statusPieChart').getContext('2d');
-        if (pieChartInstance) pieChartInstance.destroy();
-        
-        pieChartInstance = new Chart(pieCtx, {
+        if (pieChartInstance) {
+            pieChartInstance.data.datasets[0].data = [completed, inProgress, notStarted];
+            pieChartInstance.options.elements.center.text = `${pct}%`;
+            pieChartInstance.update();
+        } else {
+            const pieCtx = document.getElementById('statusPieChart').getContext('2d');
+            pieChartInstance = new Chart(pieCtx, {
             type: 'doughnut',
             data: {
                 labels: ['Completed', 'In Progress', 'Not Started'],
@@ -610,6 +616,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         });
+        }
 
         // Sidebar Combined Pie Chart (Mastery + Webinars)
         const totalCombined = total + totalLessons;
@@ -628,10 +635,13 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const combinedPct = totalCombined ? Math.round((completedCombined / totalCombined) * 100) : 0;
 
-        const sidebarCtx = document.getElementById('sidebarPieChart').getContext('2d');
-        if (sidebarPieChartInstance) sidebarPieChartInstance.destroy();
-        
-        sidebarPieChartInstance = new Chart(sidebarCtx, {
+        if (sidebarPieChartInstance) {
+            sidebarPieChartInstance.data.datasets[0].data = [completedCombined, inProgressCombined, notStartedCombined];
+            sidebarPieChartInstance.options.elements.center.text = `${combinedPct}%`;
+            sidebarPieChartInstance.update();
+        } else {
+            const sidebarCtx = document.getElementById('sidebarPieChart').getContext('2d');
+            sidebarPieChartInstance = new Chart(sidebarCtx, {
             type: 'doughnut',
             data: {
                 labels: ['Completed', 'In Progress', 'Not Started'],
@@ -661,6 +671,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         });
+        }
     }
 
     // Profile Logic
