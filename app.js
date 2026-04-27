@@ -79,6 +79,40 @@ document.addEventListener('DOMContentLoaded', () => {
         appData = typeof webinarData !== 'undefined' ? webinarData : [];
     }
 
+    // 1.5. Initialize Application Data
+    let appApplicationData = [];
+    try {
+        const storedApp = localStorage.getItem('mentfxApplication');
+        if (storedApp) {
+            appApplicationData = JSON.parse(storedApp);
+            
+            // Sync with source (applicationData.js)
+            if (typeof applicationData !== 'undefined') {
+                let hasChanges = false;
+                applicationData.forEach(source => {
+                    const local = appApplicationData.find(a => a.id === source.id);
+                    if (local) {
+                        if (local.link !== source.link || local.name !== source.name || local.category !== source.category) {
+                            local.link = source.link;
+                            local.name = source.name;
+                            local.category = source.category;
+                            hasChanges = true;
+                        }
+                    } else {
+                        appApplicationData.push(source);
+                        hasChanges = true;
+                    }
+                });
+                if (hasChanges) localStorage.setItem('mentfxApplication', JSON.stringify(appApplicationData));
+            }
+        } else {
+            appApplicationData = typeof applicationData !== 'undefined' ? applicationData : [];
+            localStorage.setItem('mentfxApplication', JSON.stringify(appApplicationData));
+        }
+    } catch (e) {
+        appApplicationData = typeof applicationData !== 'undefined' ? applicationData : [];
+    }
+
     // Initialize Profile
     let userProfile = { name: 'Tshepo Moeletsi', motto: 'Above Dreams' };
     const storedProfile = localStorage.getItem('mentfxProfile');
@@ -154,10 +188,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 localStorage.setItem('mentfxProfile', JSON.stringify(userProfile));
                 updateProfileUI();
             }
+            if (data.application) {
+                appApplicationData = data.application;
+                localStorage.setItem('mentfxApplication', JSON.stringify(appApplicationData));
+            }
             
             renderCurrentView();
             updateDashboard();
-            renderMastery(); // Ensure mastery view is updated if active
+            renderMastery(); 
+            renderApplication();
         } catch (e) {
             console.log("Could not load from server, using local data.");
         }
@@ -169,7 +208,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = {
                 webinars: appData,
                 mastery: masteryProgress,
-                profile: userProfile
+                profile: userProfile,
+                application: appApplicationData
             };
             await fetch('/api/save', {
                 method: 'POST',
@@ -343,6 +383,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     return;
                 }
                 dataObj = appData[editingIndex];
+            } else if (type === 'application') {
+                editingIndex = appApplicationData.findIndex(a => a.id === id);
+                if (editingIndex === -1) {
+                    alert('Error: Could not find application item id: ' + id);
+                    return;
+                }
+                dataObj = appApplicationData[editingIndex];
             } else {
                 // Mastery
                 const lesson = masteryProgress[id] || { status: 'Not Started', rating: 0, notes: '' };
@@ -396,6 +443,14 @@ document.addEventListener('DOMContentLoaded', () => {
             
             localStorage.setItem('mentfxData', JSON.stringify(appData));
             renderCurrentView();
+        } else if (currentEditType === 'application') {
+            if (editingIndex === null) return;
+            appApplicationData[editingIndex].status = status;
+            appApplicationData[editingIndex].rating = rating;
+            appApplicationData[editingIndex].notes = notes;
+            
+            localStorage.setItem('mentfxApplication', JSON.stringify(appApplicationData));
+            renderApplication();
         } else {
             // Mastery
             masteryProgress[currentEditId] = {
@@ -447,18 +502,17 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const progFillEl = document.getElementById('progress-fill');
         if (progFillEl) progFillEl.style.width = `${pct}%`;
-        
+
         const watchedCountEl = document.getElementById('watched-count');
         if (watchedCountEl) watchedCountEl.textContent = `${completed} / ${total} Watched`;
-        
-        const inProgressCountEl = document.getElementById('in-progress-count');
-        if (inProgressCountEl) inProgressCountEl.textContent = inProgress;
+
+        const inProgressEl = document.getElementById('in-progress-count');
+        if (inProgressEl) inProgressEl.textContent = inProgress;
 
         // Active Webinar Display
         const activeWebinarTitleEl = document.getElementById('active-webinar-title');
         const activeWebinarMonthEl = document.getElementById('active-webinar-month');
         
-        // Find the first "In Progress" webinar
         const activeWb = appData.find(d => d.status === 'In Progress');
         if (activeWb) {
             if (activeWebinarTitleEl) activeWebinarTitleEl.textContent = activeWb.name;
@@ -468,56 +522,22 @@ document.addEventListener('DOMContentLoaded', () => {
             if (activeWebinarMonthEl) activeWebinarMonthEl.textContent = "Start a new one below";
         }
 
-        // 2. Mastery Course Stats
-        let totalLessons = 0;
-        let completedLessons = 0;
-        let activeModule = null;
-        let firstIncompleteModuleFound = false;
-
-        masteryData.forEach(mod => {
-            let modLessonsCount = mod.lessons.length;
-            let modCompletedCount = 0;
-            
-            mod.lessons.forEach(lesson => {
-                totalLessons++;
-                const prog = masteryProgress[lesson.id];
-                const isCompleted = prog && (prog === true || prog.status === 'Completed');
-                
-                if (isCompleted) {
-                    completedLessons++;
-                    modCompletedCount++;
-                }
-            });
-
-            if (!firstIncompleteModuleFound && modCompletedCount < modLessonsCount) {
-                activeModule = mod;
-                firstIncompleteModuleFound = true;
-            }
-        });
-
+        // 2. Mastery Stats
+        const totalLessons = masteryData.reduce((acc, mod) => acc + mod.lessons.length, 0);
+        const completedLessons = Object.values(masteryProgress).filter(p => p.status === 'Completed' || p === true).length;
         const masteryPct = totalLessons ? Math.round((completedLessons / totalLessons) * 100) : 0;
-        const masteryProgPctEl = document.getElementById('mastery-progress-pct');
-        if (masteryProgPctEl) masteryProgPctEl.textContent = `${masteryPct}%`;
-        
-        const masteryProgFillEl = document.getElementById('mastery-progress-fill');
-        if (masteryProgFillEl) masteryProgFillEl.style.width = `${masteryPct}%`;
-        
+
+        const masteryPctEl = document.getElementById('mastery-progress-pct');
+        if (masteryPctEl) masteryPctEl.textContent = `${masteryPct}%`;
+        const masteryFillEl = document.getElementById('mastery-progress-fill');
+        if (masteryFillEl) masteryFillEl.style.width = `${masteryPct}%`;
         const masteryWatchedCountEl = document.getElementById('mastery-watched-count');
         if (masteryWatchedCountEl) masteryWatchedCountEl.textContent = `${completedLessons} / ${totalLessons} Lessons`;
-
-        const activeTitleEl = document.getElementById('active-module-title');
-        const activeProgEl = document.getElementById('active-module-progress');
-        if (activeModule) {
-            if (activeTitleEl) activeTitleEl.textContent = `Module ${activeModule.module}: ${activeModule.title}`;
-            let modDone = activeModule.lessons.filter(l => {
-                const p = masteryProgress[l.id];
-                return p && (p === true || p.status === 'Completed');
-            }).length;
-            if (activeProgEl) activeProgEl.textContent = `${modDone} / ${activeModule.lessons.length} Lessons done`;
-        } else if (totalLessons > 0 && completedLessons === totalLessons) {
-            if (activeTitleEl) activeTitleEl.textContent = "All Modules Completed!";
-            if (activeProgEl) activeProgEl.textContent = "Mastery Achieved";
-        }
+        
+        const masteryProgTxt = document.getElementById('mastery-progress-text');
+        if (masteryProgTxt) masteryProgTxt.textContent = `${masteryPct}%`;
+        const masteryProgBar = document.getElementById('mastery-progress-bar');
+        if (masteryProgBar) masteryProgBar.style.width = `${masteryPct}%`;
 
         const statusLabel = document.getElementById('course-status-label');
         if (statusLabel) {
@@ -528,21 +548,47 @@ document.addEventListener('DOMContentLoaded', () => {
             else if (masteryPct < 100) statusLabel.textContent = "Almost Master";
             else statusLabel.textContent = "Mentfx Master";
         }
+        
+        // 3. Application Stats
+        const totalApp = appApplicationData.length;
+        const completedApp = appApplicationData.filter(a => a.status === 'Completed').length;
+        const appPct = totalApp ? Math.round((completedApp / totalApp) * 100) : 0;
+        
+        const appPctEl = document.getElementById('app-progress-pct');
+        if (appPctEl) appPctEl.textContent = `${appPct}%`;
+        const appFillEl = document.getElementById('app-progress-fill');
+        if (appFillEl) appFillEl.style.width = `${appPct}%`;
+        const appCountEl = document.getElementById('app-watched-count');
+        if (appCountEl) appCountEl.textContent = `${completedApp} / ${totalApp} Completed`;
+        
+        const appProgTxt = document.getElementById('app-progress-text');
+        if (appProgTxt) appProgTxt.textContent = `${appPct}%`;
+        const appProgBar = document.getElementById('app-progress-bar');
+        if (appProgBar) appProgBar.style.width = `${appPct}%`;
+
+        const latestAppEl = document.getElementById('latest-app-concept');
+        if (latestAppEl) {
+            const lastCompleted = [...appApplicationData].reverse().find(a => a.status === 'Completed');
+            latestAppEl.textContent = lastCompleted ? lastCompleted.name : "Study started";
+        }
 
         // Mini sidebar sync
         const miniProgTxtEl = document.getElementById('mini-progress-txt');
         if (miniProgTxtEl) miniProgTxtEl.textContent = `${pct}%`;
-        
         const miniProgFillEl = document.getElementById('mini-progress-fill');
         if (miniProgFillEl) miniProgFillEl.style.width = `${pct}%`;
         
         const miniMasteryTxtEl = document.getElementById('mini-mastery-txt');
         if (miniMasteryTxtEl) miniMasteryTxtEl.textContent = `${masteryPct}%`;
-        
         const miniMasteryFillEl = document.getElementById('mini-mastery-fill');
         if (miniMasteryFillEl) miniMasteryFillEl.style.width = `${masteryPct}%`;
 
-        // Chart mapping
+        const miniAppTxtEl = document.getElementById('mini-app-txt');
+        if (miniAppTxtEl) miniAppTxtEl.textContent = `${appPct}%`;
+        const miniAppFillEl = document.getElementById('mini-app-fill');
+        if (miniAppFillEl) miniAppFillEl.style.width = `${appPct}%`;
+
+        // Update Charts
         const monthCounts = {};
         appData.forEach(wb => {
             if (wb.status === 'Completed' && wb.monthGroup) {
@@ -558,87 +604,69 @@ document.addEventListener('DOMContentLoaded', () => {
             chartInstance.data.datasets[0].data = data.length ? data : [0];
             chartInstance.update();
         } else {
-            const ctx = document.getElementById('monthlyChart').getContext('2d');
-            chartInstance = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: labels.length ? labels : ['No Data'],
-                datasets: [{
-                    label: 'Completed Webinars',
-                    data: data.length ? data : [0],
-                    backgroundColor: '#3b82f6',
-                    borderRadius: 4
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: { stepSize: 1, color: '#94a3b8' },
-                        grid: { color: 'rgba(255,255,255,0.05)' }
+            const chartEl = document.getElementById('monthlyChart');
+            if (chartEl) {
+                const ctx = chartEl.getContext('2d');
+                chartInstance = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels.length ? labels : ['No Data'],
+                        datasets: [{
+                            label: 'Completed Webinars',
+                            data: data.length ? data : [0],
+                            backgroundColor: '#3b82f6',
+                            borderRadius: 4
+                        }]
                     },
-                    x: {
-                        ticks: { color: '#94a3b8' },
-                        grid: { display: false }
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            y: { beginAtZero: true, ticks: { stepSize: 1, color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                            x: { ticks: { color: '#94a3b8' }, grid: { display: false } }
+                        }
                     }
-                }
+                });
             }
-        });
         }
 
-        // Status Pie Chart
         const notStarted = total - completed - inProgress;
         if (pieChartInstance) {
             pieChartInstance.data.datasets[0].data = [completed, inProgress, notStarted];
             pieChartInstance.options.elements.center.text = `${pct}%`;
             pieChartInstance.update();
         } else {
-            const pieCtx = document.getElementById('statusPieChart').getContext('2d');
-            pieChartInstance = new Chart(pieCtx, {
-            type: 'doughnut',
-            data: {
-                labels: ['Completed', 'In Progress', 'Not Started'],
-                datasets: [{
-                    data: [completed, inProgress, notStarted],
-                    backgroundColor: ['#10b981', '#3b82f6', '#475569'],
-                    borderWidth: 0,
-                    hoverOffset: 4
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { 
-                        position: 'bottom',
-                        labels: { color: '#94a3b8', padding: 20, font: { family: 'Inter' } }
+            const pieEl = document.getElementById('statusPieChart');
+            if (pieEl) {
+                const pieCtx = pieEl.getContext('2d');
+                pieChartInstance = new Chart(pieCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Completed', 'In Progress', 'Not Started'],
+                        datasets: [{
+                            data: [completed, inProgress, notStarted],
+                            backgroundColor: ['#10b981', '#3b82f6', '#475569'],
+                            borderWidth: 0,
+                            hoverOffset: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8', padding: 20, font: { family: 'Inter' } } } },
+                        cutout: '70%',
+                        elements: {
+                            center: { text: `${pct}%`, color: '#10b981', fontStyle: 'Inter', sidePadding: 20, minFontSize: 12, maxFontSize: 24 }
+                        }
                     }
-                },
-                cutout: '70%',
-                elements: {
-                    center: {
-                        text: `${pct}%`,
-                        color: '#10b981',
-                        fontStyle: 'Inter',
-                        sidePadding: 20,
-                        minFontSize: 12,
-                        maxFontSize: 24
-                    }
-                }
+                });
             }
-        });
         }
 
-        // Sidebar Combined Pie Chart (Mastery + Webinars)
+        // Sidebar Combined Pie Chart
         const totalCombined = total + totalLessons;
         const completedCombined = completed + completedLessons;
-        
-        // Calculate combined In Progress (approximate for Mastery as we treat status as binary or object)
         let inProgressMastery = 0;
         masteryData.forEach(mod => {
             mod.lessons.forEach(l => {
@@ -648,7 +676,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         const inProgressCombined = inProgress + inProgressMastery;
         const notStartedCombined = totalCombined - completedCombined - inProgressCombined;
-        
         const combinedPct = totalCombined ? Math.round((completedCombined / totalCombined) * 100) : 0;
 
         if (sidebarPieChartInstance) {
@@ -656,38 +683,65 @@ document.addEventListener('DOMContentLoaded', () => {
             sidebarPieChartInstance.options.elements.center.text = `${combinedPct}%`;
             sidebarPieChartInstance.update();
         } else {
-            const sidebarCtx = document.getElementById('sidebarPieChart').getContext('2d');
-            sidebarPieChartInstance = new Chart(sidebarCtx, {
-            type: 'doughnut',
-            data: {
-                labels: ['Completed', 'In Progress', 'Not Started'],
-                datasets: [{
-                    data: [completedCombined, inProgressCombined, notStartedCombined],
-                    backgroundColor: ['#10b981', '#3b82f6', '#475569'],
-                    borderWidth: 0,
-                    hoverOffset: 4
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false },
-                    tooltip: { enabled: true }
-                },
-                cutout: '75%',
-                elements: {
-                    center: {
-                        text: `${combinedPct}%`,
-                        color: '#fff',
-                        fontStyle: 'Inter',
-                        sidePadding: 15,
-                        maxFontSize: 16
+            const sidebarEl = document.getElementById('sidebarPieChart');
+            if (sidebarEl) {
+                const sidebarCtx = sidebarEl.getContext('2d');
+                sidebarPieChartInstance = new Chart(sidebarCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Completed', 'In Progress', 'Not Started'],
+                        datasets: [{
+                            data: [completedCombined, inProgressCombined, notStartedCombined],
+                            backgroundColor: ['#10b981', '#3b82f6', '#475569'],
+                            borderWidth: 0,
+                            hoverOffset: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false }, tooltip: { enabled: true } },
+                        cutout: '75%',
+                        elements: {
+                            center: { text: `${combinedPct}%`, color: '#fff', fontStyle: 'Inter', sidePadding: 15, maxFontSize: 16 }
+                        }
                     }
-                }
+                });
             }
-        });
         }
+    }
+
+    function renderApplication() {
+        const container = document.getElementById('app-grid');
+        if (!container) return;
+        container.innerHTML = '';
+
+        appApplicationData.forEach((item) => {
+            const card = document.createElement('div');
+            card.className = 'webinar-card glass';
+
+            let statusClass = 'status-not-started';
+            if (item.status === 'In Progress') statusClass = 'status-in-progress';
+            if (item.status === 'Completed') statusClass = 'status-completed';
+
+            let linkHtml = item.link ? `<a href="${item.link}" target="_blank" class="btn-action">Watch</a>` : '';
+            let notesHtml = item.notes ? `<div class="lesson-notes-preview" style="margin-top:0.5rem; opacity:0.7">${item.notes}</div>` : '';
+
+            card.innerHTML = `
+                <div class="card-header">
+                    <span class="card-month">${item.category || 'Study'}</span>
+                    <span class="status-badge ${statusClass}">${item.status}</span>
+                </div>
+                <div class="card-title">${item.name}</div>
+                ${notesHtml}
+                <div class="card-rating">Comprehension: ${item.rating || 0}/5</div>
+                <div class="card-footer">
+                    ${linkHtml}
+                    <button class="btn-action" style="flex:1" onclick="openEditModal('${item.id}', 'application')">Edit & Notes</button>
+                </div>
+            `;
+            container.appendChild(card);
+        });
     }
 
     // Profile Logic
@@ -949,6 +1003,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (targetId === 'tracker') renderCurrentView();
         if (targetId === 'dashboard') updateDashboard();
         if (targetId === 'mastery') renderMastery();
+        if (targetId === 'application') renderApplication();
     }
 
     // Dashboard Quick Filters
