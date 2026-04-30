@@ -1393,10 +1393,107 @@ document.addEventListener('DOMContentLoaded', () => {
     window.updateDashboard = updateDashboard;
     window.renderHeatmap = renderHeatmap;
     window.renderComprehensionTrends = renderComprehensionTrends;
+    window.showAdminView = showAdminView;
+    window.pushToGitHub = pushToGitHub;
+
 
     // Stubs for server sync (to be implemented if backend is added)
     function loadFromServer() { console.log("Cloud sync: Loading data..."); }
     function saveToServer() { console.log("Cloud sync: Saving data..."); }
+
+    function showAdminView() {
+        closeProfileModal();
+        showTab('admin');
+    }
+
+    async function pushToGitHub() {
+        const name = document.getElementById('admin-webinar-name').value.trim();
+        const link = document.getElementById('admin-webinar-link').value.trim();
+        const month = document.getElementById('admin-webinar-month').value.trim();
+        const token = document.getElementById('admin-github-token').value.trim();
+
+        if (!name || !link || !month || !token) {
+            alert('Please fill in all fields and provide your GitHub token.');
+            return;
+        }
+
+        const btn = document.getElementById('btn-push-update');
+        const originalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = 'Updating GitHub...';
+
+        try {
+            // Configuration - You can make these dynamic later if needed
+            const owner = 'thatkingmag';
+            const repo = 'Mentfx-Mastery-Dashboard';
+            const path = 'data.js';
+
+            // 1. Get current file content & SHA
+            const getResp = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`, {
+                headers: { 'Authorization': `token ${token}` }
+            });
+
+            if (!getResp.ok) throw new Error('Failed to fetch data.js from GitHub');
+            const fileData = await getResp.json();
+            const currentContent = atob(fileData.content);
+            const sha = fileData.sha;
+
+            // 2. Parse and update
+            // We use a regex to extract the JSON array part
+            const arrayMatch = currentContent.match(/const webinarData = ([\s\S]*);/);
+            if (!arrayMatch) throw new Error('Could not parse data.js structure');
+            
+            let dataArray = JSON.parse(arrayMatch[1]);
+            
+            // Add new item
+            dataArray.push({
+                id: name,
+                name: name,
+                link: link,
+                monthGroup: month,
+                status: "Not Started",
+                notes: "",
+                keyTakeaways: "",
+                rating: 0
+            });
+
+            const newContent = `const webinarData = ${JSON.stringify(dataArray, null, 4)};\n`;
+
+            // 3. Push back to GitHub
+            const putResp = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `token ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    message: `Admin: Add ${name} to webinar list`,
+                    content: btoa(unescape(encodeURIComponent(newContent))),
+                    sha: sha,
+                    branch: 'main'
+                })
+            });
+
+            if (!putResp.ok) {
+                const error = await putResp.json();
+                throw new Error(error.message || 'Failed to update GitHub');
+            }
+
+            alert(`Successfully added ${name}! The site will update in a few minutes.`);
+            
+            // Clear inputs
+            document.getElementById('admin-webinar-name').value = '';
+            document.getElementById('admin-webinar-link').value = '';
+            
+        } catch (err) {
+            console.error(err);
+            alert('Error: ' + err.message);
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
+    }
+
 
     updateClock();
 

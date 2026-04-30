@@ -354,6 +354,51 @@
                 </div>
             </section>
 
+            <!-- Admin View -->
+            <section id="admin-view" class="view">
+                <header>
+                    <h1>Portal Management</h1>
+                    <p style="opacity: 0.6; font-size: 0.9rem;">Add new webinars and update the portal content via GitHub API.</p>
+                </header>
+                
+                <div class="admin-container glass" style="padding: 2rem; border-radius: 12px; margin-top: 1rem;">
+                    <div class="admin-form" style="max-width: 600px;">
+                        <h3 style="margin-bottom: 1.5rem;">Add New Webinar</h3>
+                        <div class="form-group" style="margin-bottom: 1.25rem;">
+                            <label style="display: block; margin-bottom: 0.5rem; opacity: 0.8;">Webinar Name</label>
+                            <input type="text" id="admin-webinar-name" class="glass-input" placeholder="e.g. Webinar 259">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 1.25rem;">
+                            <label style="display: block; margin-bottom: 0.5rem; opacity: 0.8;">YouTube Link</label>
+                            <input type="text" id="admin-webinar-link" class="glass-input" placeholder="https://youtu.be/...">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 1.25rem;">
+                            <label style="display: block; margin-bottom: 0.5rem; opacity: 0.8;">Month Group</label>
+                            <input type="text" id="admin-webinar-month" class="glass-input" placeholder="e.g. June 2026">
+                        </div>
+                        
+                        <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border);">
+                            <h3 style="display:flex; align-items:center; gap:0.5rem; margin-bottom: 0.5rem;">
+                                GitHub Authentication
+                                <span class="badge" style="background:var(--accent); font-size:0.6rem; padding: 2px 6px; border-radius: 4px;">Required</span>
+                            </h3>
+                            <p style="font-size:0.75rem; opacity:0.5; margin-bottom:1rem;">To push updates, you need a Personal Access Token with 'repo' permissions.</p>
+                            <div class="form-group" style="margin-bottom: 1.25rem;">
+                                <label style="display: block; margin-bottom: 0.5rem; opacity: 0.8;">GitHub Token</label>
+                                <input type="password" id="admin-github-token" class="glass-input" placeholder="ghp_xxxxxxxxxxxx">
+                            </div>
+                        </div>
+
+                        <div class="modal-actions" style="margin-top: 2rem; justify-content: flex-start; display: flex; gap: 1rem;">
+                            <button class="btn btn-primary" id="btn-push-update" onclick="pushToGitHub()">
+                                <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" height="1.1em" width="1.1em" xmlns="http://www.w3.org/2000/svg" style="margin-right: 0.5rem;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                                Push to GitHub
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
         </main>
     </div>
     
@@ -423,8 +468,13 @@
                     <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" height="1.1em" width="1.1em" xmlns="http://www.w3.org/2000/svg"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
                     Import Data
                 </button>
+                <button class="btn-outline" onclick="showAdminView()">
+                    <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" height="1.1em" width="1.1em" xmlns="http://www.w3.org/2000/svg"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>
+                    Admin Management
+                </button>
                 <input type="file" id="import-input" style="display:none;" accept=".json" onchange="importProgress(event)">
             </div>
+
             <div class="modal-actions">
                 <button class="btn btn-secondary" onclick="closeProfileModal()">Cancel</button>
                 <button class="btn btn-primary" onclick="saveProfile()">Save Profile</button>
