@@ -15,15 +15,26 @@
 
 ---
 
+## [v1.02] - 2026-04-29
+### Added
+- **Global Search**: Centralized search bar in the sidebar that scans across Webinars, Mastery Lessons, and Application items (titles, notes, and tags).
+- **Topic Tagging System**: Ability to add hashtags (e.g., #EVC, #Liquidity) to any item via the Update Modal. Tags are interactive and filterable.
+- **Study Heatmap**: A contribution-style activity graph on the Dashboard visualizing daily study consistency.
+- **Comprehension Trends**: Line charts tracking average understanding ratings over time to monitor progress.
+- **Activity Logging**: Background system that records study events to power the analytics engine.
+---
+
+## [v1.03] - 2026-04-30
+### Fixed
+- **Code Audit & Stability**: Performed a comprehensive audit of `app.js`. Fixed critical SyntaxErrors caused by duplicate variable declarations and brace mismatches.
+- **Webinar Tracker**: Fixed a logical bug where the tracker table appeared empty due to a missing `renderCurrentView` dispatcher function.
+- **Search Logic**: Corrected an invalid element ID reference (`search-input` vs `search-filter`) that broke local filtering.
+- **Global Handlers**: Resolved broken button mappings in the Update Modal by correctly exposing `saveChanges` to the global scope.
+- **Reference Clean-up**: Added stubs for `loadFromServer` and `saveToServer` to prevent runtime errors and ensure smooth execution.
+
+---
+
 ## Future Roadmap (Planned Features)
-
-### 🔍 Search & Discovery
-- **Global Search**: Filter webinars and lessons by title, notes, or key takeaways.
-- **Topic Tagging**: Label videos with tags like `#EVC`, `#Liquidity`, or `#Psychology` for categorized studying.
-
-### 📊 Advanced Analytics
-- **Study Heatmap**: Visualize study consistency with a contribution-style activity graph.
-- **Comprehension Trends**: Line charts tracking your average understanding rating over time.
 
 ### 📱 User Experience
 - **PWA Support**: Transform the dashboard into an installable app for mobile and desktop.

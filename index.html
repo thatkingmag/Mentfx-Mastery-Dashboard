@@ -49,6 +49,14 @@
                 <div class="progress-bar-bg" style="margin-bottom:0;"><div class="progress-bar-fill" id="mini-app-fill" style="background:#10b981"></div></div>
             </div>
 
+            <!-- Global Search -->
+            <div class="sidebar-search">
+                <div class="search-input-wrapper">
+                    <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    <input type="text" id="global-search" placeholder="Global Search...">
+                </div>
+            </div>
+
             <ul class="nav-links">
                 <li class="active" data-tab="dashboard">
                     <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="3" width="7" height="9"></rect><rect x="14" y="3" width="7" height="5"></rect><rect x="14" y="12" width="7" height="9"></rect><rect x="3" y="16" width="7" height="5"></rect></svg>
@@ -155,6 +163,39 @@
                     <div class="chart-card glass">
                         <h3>Status Breakdown</h3>
                         <canvas id="statusPieChart"></canvas>
+                    </div>
+                </div>
+
+                <div style="padding: 0 1.5rem; margin-top: 2rem; margin-bottom: 1rem;">
+                    <h2 style="font-size: 1.1rem; color: var(--accent); opacity: 0.9; margin-bottom: 0.5rem;">Study Activity & Consistency</h2>
+                </div>
+
+                <div class="analytics-row">
+                    <div class="chart-card glass" style="flex: 2;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 1rem;">
+                            <h3>Contribution Heatmap</h3>
+                            <div id="heatmap-legend" class="heatmap-legend">
+                                <span>Less</span>
+                                <div class="legend-box level-0"></div>
+                                <div class="legend-box level-1"></div>
+                                <div class="legend-box level-2"></div>
+                                <div class="legend-box level-3"></div>
+                                <div class="legend-box level-4"></div>
+                                <span>More</span>
+                            </div>
+                        </div>
+                        <div id="heatmap-container" class="heatmap-scroll-wrapper">
+                            <div id="heatmap-grid" class="heatmap-grid">
+                                <!-- Heatmap boxes injected here -->
+                            </div>
+                        </div>
+                        <p style="font-size: 0.75rem; opacity: 0.6; margin-top: 1rem;">Daily activity based on webinar updates and lesson progress.</p>
+                    </div>
+
+                    <div class="chart-card glass" style="flex: 1.5;">
+                        <h3>Comprehension Trend</h3>
+                        <canvas id="trendChart"></canvas>
+                        <p style="font-size: 0.75rem; opacity: 0.6; margin-top: 1rem;">Average understanding rating over time.</p>
                     </div>
                 </div>
             </section>
@@ -302,6 +343,17 @@
                 </div>
             </section>
 
+            <!-- Search Results View -->
+            <section id="search-results-view" class="view">
+                <header>
+                    <h1>Search Results</h1>
+                    <p id="search-stats">Found 0 matches across all categories.</p>
+                </header>
+                <div id="search-results-content" class="card-grid">
+                    <!-- Results injected here -->
+                </div>
+            </section>
+
         </main>
     </div>
     
@@ -334,6 +386,10 @@
                 <label>Notes & Key Takeaways</label>
                 <textarea id="modal-notes" class="glass-input" rows="4" placeholder="What did you learn?"></textarea>
             </div>
+            <div class="form-group">
+                <label>Topic Tags (comma separated)</label>
+                <input type="text" id="modal-tags" class="glass-input" placeholder="e.g. EVC, Liquidity, Psychology">
+            </div>
             <div class="modal-actions">
                 <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
                 <button class="btn btn-primary" onclick="saveChanges()">Save Changes</button>
@@ -358,11 +414,27 @@
                 <label>Motto / Tagline</label>
                 <input type="text" id="profile-motto-input" class="glass-input" placeholder="e.g. Above Dreams">
             </div>
+            <div class="data-actions">
+                <button class="btn-outline" onclick="exportProgress()">
+                    <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" height="1.1em" width="1.1em" xmlns="http://www.w3.org/2000/svg"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    Export Data
+                </button>
+                <button class="btn-outline" onclick="document.getElementById('import-input').click()">
+                    <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" height="1.1em" width="1.1em" xmlns="http://www.w3.org/2000/svg"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                    Import Data
+                </button>
+                <input type="file" id="import-input" style="display:none;" accept=".json" onchange="importProgress(event)">
+            </div>
             <div class="modal-actions">
                 <button class="btn btn-secondary" onclick="closeProfileModal()">Cancel</button>
                 <button class="btn btn-primary" onclick="saveProfile()">Save Profile</button>
             </div>
         </div>
+    </div>
+
+    <div id="save-toast" class="toast-notification">
+        <svg stroke="currentColor" fill="none" stroke-width="3" viewBox="0 0 24 24" height="1.2em" width="1.2em" xmlns="http://www.w3.org/2000/svg"><polyline points="20 6 9 17 4 12"></polyline></svg>
+        <span>Changes Saved</span>
     </div>
 
     <script src="app.js"></script>

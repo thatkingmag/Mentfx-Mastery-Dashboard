@@ -1,41 +1,47 @@
 document.addEventListener('DOMContentLoaded', () => {
     // 0. Register Chart.js Plugin for Center Text
-    Chart.register({
-        id: 'centerText',
-        afterDraw: (chart) => {
-            if (chart.config.options.elements && chart.config.options.elements.center) {
-                const ctx = chart.ctx;
-                const centerConfig = chart.config.options.elements.center;
-                const fontStyle = centerConfig.fontStyle || 'Inter';
-                const txt = centerConfig.text;
-                const color = centerConfig.color || '#fff';
-                const sidePadding = centerConfig.sidePadding || 20;
-                const sidePaddingCalculated = (sidePadding / 100) * (chart.innerRadius * 2);
-                
-                ctx.font = `bold 16px ${fontStyle}`;
-                
-                const stringWidth = ctx.measureText(txt).width;
-                const elementWidth = (chart.innerRadius * 2) - sidePaddingCalculated;
+    try {
+        if (typeof Chart !== 'undefined') {
+            Chart.register({
+                id: 'centerText',
+                afterDraw: (chart) => {
+                    if (chart.config.options.elements && chart.config.options.elements.center) {
+                        const ctx = chart.ctx;
+                        const centerConfig = chart.config.options.elements.center;
+                        const fontStyle = centerConfig.fontStyle || 'Inter';
+                        const txt = centerConfig.text;
+                        const color = centerConfig.color || '#fff';
+                        const sidePadding = centerConfig.sidePadding || 20;
+                        const sidePaddingCalculated = (sidePadding / 100) * (chart.innerRadius * 2);
+                        
+                        ctx.font = `bold 16px ${fontStyle}`;
+                        
+                        const stringWidth = ctx.measureText(txt).width;
+                        const elementWidth = (chart.innerRadius * 2) - sidePaddingCalculated;
 
-                const widthRatio = elementWidth / stringWidth;
-                const newFontSize = Math.floor(30 * widthRatio);
-                const elementHeight = (chart.innerRadius * 2);
+                        const widthRatio = elementWidth / stringWidth;
+                        const newFontSize = Math.floor(30 * widthRatio);
+                        const elementHeight = (chart.innerRadius * 2);
 
-                const fontSizeToUse = Math.min(newFontSize, elementHeight, centerConfig.maxFontSize || 25);
-                const textAlign = centerConfig.textAlign || 'center';
-                const textBaseline = centerConfig.textBaseline || 'middle';
+                        const fontSizeToUse = Math.min(newFontSize, elementHeight, centerConfig.maxFontSize || 25);
+                        const textAlign = centerConfig.textAlign || 'center';
+                        const textBaseline = centerConfig.textBaseline || 'middle';
 
-                ctx.textAlign = textAlign;
-                ctx.textBaseline = textBaseline;
-                ctx.font = `700 ${fontSizeToUse}px ${fontStyle}`;
-                ctx.fillStyle = color;
+                        ctx.textAlign = textAlign;
+                        ctx.textBaseline = textBaseline;
+                        ctx.font = `700 ${fontSizeToUse}px ${fontStyle}`;
+                        ctx.fillStyle = color;
 
-                const centerX = ((chart.chartArea.left + chart.chartArea.right) / 2);
-                const centerY = ((chart.chartArea.top + chart.chartArea.bottom) / 2);
-                ctx.fillText(txt, centerX, centerY);
-            }
+                        const centerX = ((chart.chartArea.left + chart.chartArea.right) / 2);
+                        const centerY = ((chart.chartArea.top + chart.chartArea.bottom) / 2);
+                        ctx.fillText(txt, centerX, centerY);
+                    }
+                }
+            });
         }
-    });
+    } catch (e) {
+        console.error("Chart.js centerText plugin registration failed:", e);
+    }
 
     // 1. Initialize Data
     let appData = [];
@@ -124,11 +130,18 @@ document.addEventListener('DOMContentLoaded', () => {
     // Mastery Progress & View Mode State
     let masteryProgress = {};
     let collapsedModules = new Set();
-    let currentMasteryViewMode = 'grid';
+    let currentMasteryViewMode = 'grid'; // Default view mode
+
 
     const storedMastery = localStorage.getItem('mentfxMastery');
     if (storedMastery) {
         masteryProgress = JSON.parse(storedMastery);
+    }
+
+    let activityLog = [];
+    const storedActivity = localStorage.getItem('mentfxActivityLog');
+    if (storedActivity) {
+        activityLog = JSON.parse(storedActivity);
     }
 
     // Elements
@@ -136,11 +149,49 @@ document.addEventListener('DOMContentLoaded', () => {
     const searchFilter = document.getElementById('search-filter');
     const statusFilter = document.getElementById('status-filter');
     const modal = document.getElementById('edit-modal');
+
     
-    // Navigation is handled by showTab() at the bottom of the script
+    let trendChart = null;
+
+    // Filter out any previous mock data to ensure a clean slate
+    const originalLength = activityLog.length;
+    activityLog = activityLog.filter(log => log.id !== 'mock');
+    if (activityLog.length !== originalLength) {
+        localStorage.setItem('mentfxActivityLog', JSON.stringify(activityLog));
+    }
+
+
+    // State Variables
+    let currentViewMode = 'list';
+    let chartInstance = null;
+    let pieChartInstance = null;
+    let sidebarPieChartInstance = null;
+
+
+    // ---- Event Listeners (Moved to top for robustness) ----
+    document.querySelectorAll('.nav-links li, .clickable-logo').forEach(tab => {
+        tab.addEventListener('click', () => {
+            const targetId = tab.dataset.tab || 'dashboard';
+            if (typeof showTab === 'function') showTab(targetId);
+            // Clear global search when switching tabs
+            const gs = document.getElementById('global-search');
+            if (gs) gs.value = '';
+        });
+    });
+
+    const globalSearchInput = document.getElementById('global-search');
+    if (globalSearchInput) {
+        globalSearchInput.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase().trim();
+            if (query.length > 0) {
+                if (typeof handleGlobalSearch === 'function') handleGlobalSearch(query);
+            } else {
+                if (typeof showTab === 'function') showTab('dashboard');
+            }
+        });
+    }
 
     // View Toggling within Tracker
-    let currentViewMode = 'list';
     document.querySelectorAll('.view-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
@@ -148,85 +199,40 @@ document.addEventListener('DOMContentLoaded', () => {
             
             btn.classList.add('active');
             currentViewMode = btn.dataset.mode;
-            document.getElementById(`${currentViewMode}-mode`).classList.add('active');
+            const modeEl = document.getElementById(`${currentViewMode}-mode`);
+            if (modeEl) modeEl.classList.add('active');
             
             renderCurrentView();
         });
     });
 
-    function renderCurrentView() {
-        if (currentViewMode === 'list') renderTable();
-        if (currentViewMode === 'grid') renderGrid();
-        if (currentViewMode === 'calendar') renderCalendar();
-    }
-
-    // Filtering
-    searchFilter.addEventListener('input', renderTable);
-    statusFilter.addEventListener('change', renderTable);
-
-    let chartInstance = null;
-    let pieChartInstance = null;
-    let sidebarPieChartInstance = null;
-
-    // ---- Server Sync Logic ---- //
-    async function loadFromServer() {
-        if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') return;
-        try {
-            const res = await fetch('/api/load');
-            const data = await res.json();
-            
-            if (data.webinars && data.webinars.length > 0) {
-                appData = data.webinars;
-                localStorage.setItem('mentfxData', JSON.stringify(appData));
-            }
-            if (data.mastery) {
-                masteryProgress = data.mastery;
-                localStorage.setItem('mentfxMastery', JSON.stringify(masteryProgress));
-            }
-            if (data.profile && data.profile.name) {
-                userProfile = data.profile;
-                localStorage.setItem('mentfxProfile', JSON.stringify(userProfile));
-                updateProfileUI();
-            }
-            if (data.application) {
-                appApplicationData = data.application;
-                localStorage.setItem('mentfxApplication', JSON.stringify(appApplicationData));
-            }
-            
-            renderCurrentView();
-            updateDashboard();
-            renderMastery(); 
-            renderApplication();
-        } catch (e) {
-            console.log("Could not load from server, using local data.");
-        }
-    }
-
-    async function saveToServer() {
-        if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') return;
-        try {
-            const data = {
-                webinars: appData,
-                mastery: masteryProgress,
-                profile: userProfile,
-                application: appApplicationData
-            };
-            await fetch('/api/save', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            });
-        } catch (e) {
-            console.log("Could not save to server.");
-        }
-    }
+    // Mastery View Switching
+    document.querySelectorAll('.mastery-view-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            currentMasteryViewMode = btn.dataset.modemastery;
+            document.querySelectorAll('.mastery-view-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderMastery();
+        });
+    });
 
     // Initial Render & Sync
-    loadFromServer(); // This will fetch from server and then update UI
+    try {
+        loadFromServer();
+    } catch (e) {
+        console.error("loadFromServer failed:", e);
+    }
+    
     renderCurrentView();
     updateDashboard();
 
     // ---- Functions ---- //
+
+    function renderCurrentView() {
+        if (currentViewMode === 'list') renderTable();
+        else if (currentViewMode === 'grid') renderGrid();
+        else if (currentViewMode === 'calendar') renderCalendar();
+    }
 
     function renderTable() {
         const term = searchFilter.value.toLowerCase();
@@ -234,8 +240,9 @@ document.addEventListener('DOMContentLoaded', () => {
         trackerBody.innerHTML = '';
         
         appData.forEach((wb, index) => {
+            const matchInTags = (wb.tags || []).some(t => t.toLowerCase().includes(term));
             if (stat !== 'All' && wb.status !== stat) return;
-            if (term && !wb.name.toLowerCase().includes(term) && !wb.notes.toLowerCase().includes(term)) return;
+            if (term && !wb.name.toLowerCase().includes(term) && (!wb.notes || !wb.notes.toLowerCase().includes(term)) && !matchInTags) return;
 
             const row = document.createElement('tr');
             let statusClass = 'status-not-started';
@@ -243,9 +250,13 @@ document.addEventListener('DOMContentLoaded', () => {
             if (wb.status === 'Completed') statusClass = 'status-completed';
 
             let linkHtml = wb.link ? `<a href="${wb.link}" target="_blank" class="link-btn">Watch</a>` : '<span style="color:#64748b">No Link</span>';
+            let tagsHtml = (wb.tags || []).map(t => `<span class="tag-badge">#${t}</span>`).join('');
 
             row.innerHTML = `
-                <td style="font-weight: 500;">${wb.name}</td>
+                <td style="font-weight: 500;">
+                    <div>${wb.name}</div>
+                    <div class="tag-container">${tagsHtml}</div>
+                </td>
                 <td style="color: var(--text-muted);">${wb.monthGroup || 'Unknown'}</td>
                 <td><span class="status-badge ${statusClass}">${wb.status}</span></td>
                 <td><div style="display:flex; align-items:center; gap:5px;"><span style="color:var(--accent); font-weight:700">${wb.rating || 0}</span>/5</div></td>
@@ -263,8 +274,9 @@ document.addEventListener('DOMContentLoaded', () => {
         container.innerHTML = '';
 
         appData.forEach((wb, index) => {
+            const matchInTags = (wb.tags || []).some(t => t.toLowerCase().includes(term));
             if (stat !== 'All' && wb.status !== stat) return;
-            if (term && !wb.name.toLowerCase().includes(term) && !wb.notes.toLowerCase().includes(term)) return;
+            if (term && !wb.name.toLowerCase().includes(term) && (!wb.notes || !wb.notes.toLowerCase().includes(term)) && !matchInTags) return;
 
             const card = document.createElement('div');
             card.className = 'webinar-card glass';
@@ -274,6 +286,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (wb.status === 'Completed') statusClass = 'status-completed';
 
             let linkHtml = wb.link ? `<a href="${wb.link}" target="_blank" class="btn-action">Watch</a>` : '';
+            let tagsHtml = (wb.tags || []).map(t => `<span class="tag-badge">#${t}</span>`).join('');
 
             let notesHtml = '';
             if (wb.notes) {
@@ -286,6 +299,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <span class="status-badge ${statusClass}">${wb.status}</span>
                 </div>
                 <div class="card-title">${wb.name}</div>
+                <div class="tag-container">${tagsHtml}</div>
                 ${notesHtml}
                 <div class="card-rating">Comprehension: ${wb.rating || 0}/5</div>
                 <div class="card-footer">
@@ -306,8 +320,9 @@ document.addEventListener('DOMContentLoaded', () => {
         // Group by Year, then by Month Group
         const yearGroups = {};
         appData.forEach(wb => {
+            const matchInTags = (wb.tags || []).some(t => t.toLowerCase().includes(term));
             if (stat !== 'All' && wb.status !== stat) return;
-            if (term && !wb.name.toLowerCase().includes(term) && !wb.notes.toLowerCase().includes(term)) return;
+            if (term && !wb.name.toLowerCase().includes(term) && (!wb.notes || !wb.notes.toLowerCase().includes(term)) && !matchInTags) return;
             
             const yearMatch = wb.monthGroup.match(/\d{4}/);
             const year = yearMatch ? yearMatch[0] : 'Other';
@@ -414,6 +429,7 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('modal-understanding').value = dataObj.rating || 0;
             document.getElementById('modal-understanding-val').textContent = dataObj.rating || 0;
             document.getElementById('modal-notes').value = dataObj.notes || '';
+            document.getElementById('modal-tags').value = (dataObj.tags || []).join(', ');
             
             modal.style.opacity = '1';
             modal.style.pointerEvents = 'all';
@@ -434,12 +450,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const status = document.getElementById('modal-status').value;
         const rating = parseInt(document.getElementById('modal-understanding').value);
         const notes = document.getElementById('modal-notes').value;
+        const tags = document.getElementById('modal-tags').value.split(',').map(t => t.trim()).filter(t => t !== '');
 
         if (currentEditType === 'webinar') {
             if (editingIndex === null) return;
             appData[editingIndex].status = status;
             appData[editingIndex].rating = rating;
             appData[editingIndex].notes = notes;
+            appData[editingIndex].tags = tags;
             
             localStorage.setItem('mentfxData', JSON.stringify(appData));
             renderCurrentView();
@@ -448,6 +466,7 @@ document.addEventListener('DOMContentLoaded', () => {
             appApplicationData[editingIndex].status = status;
             appApplicationData[editingIndex].rating = rating;
             appApplicationData[editingIndex].notes = notes;
+            appApplicationData[editingIndex].tags = tags;
             
             localStorage.setItem('mentfxApplication', JSON.stringify(appApplicationData));
             renderApplication();
@@ -456,27 +475,111 @@ document.addEventListener('DOMContentLoaded', () => {
             masteryProgress[currentEditId] = {
                 status: status,
                 rating: rating,
-                notes: notes
+                notes: notes,
+                tags: tags
             };
             localStorage.setItem('mentfxMastery', JSON.stringify(masteryProgress));
             renderMastery();
         }
         
+        logActivity(currentEditId, currentEditType, rating);
+        
         closeModal();
         updateDashboard();
+        showAutoSave();
         saveToServer(); // Background sync
     };
 
-    function saveWebinarLocally() {
-        closeModal();
-        renderCurrentView();
-        updateDashboard();
-        try {
-            localStorage.setItem('mentfxData', JSON.stringify(appData));
-        } catch (e) {}
+    function logActivity(id, type, rating) {
+        const today = new Date().toISOString().split('T')[0];
+        activityLog.push({
+            date: today,
+            id: id,
+            type: type,
+            rating: rating
+        });
+        
+        // Keep last 2000 entries
+        if (activityLog.length > 2000) activityLog.shift();
+        localStorage.setItem('mentfxActivityLog', JSON.stringify(activityLog));
+        
+        // Refresh analytics if on dashboard
+        if (document.getElementById('dashboard-view').classList.contains('active')) {
+            renderAnalytics();
+        }
     }
 
+    window.saveProfile = () => {
+        userProfile.name = document.getElementById('profile-name-input').value || 'User';
+        userProfile.motto = document.getElementById('profile-motto-input').value || 'Above Dreams';
+        
+        localStorage.setItem('mentfxProfile', JSON.stringify(userProfile));
+        updateProfileUI();
+        closeProfileModal();
+        showAutoSave();
+        saveToServer(); // Background sync
+    };
+
+    // Data Export/Import Logic
+    window.showAutoSave = () => {
+        const toast = document.getElementById('save-toast');
+        if (!toast) return;
+        toast.classList.add('active');
+        setTimeout(() => {
+            toast.classList.remove('active');
+        }, 3000);
+    };
+
+    window.exportProgress = () => {
+        const data = {
+            mentfxData: JSON.parse(localStorage.getItem('mentfxData') || '[]'),
+            mentfxMastery: JSON.parse(localStorage.getItem('mentfxMastery') || '{}'),
+            mentfxProfile: JSON.parse(localStorage.getItem('mentfxProfile') || '{}'),
+            mentfxApplication: JSON.parse(localStorage.getItem('mentfxApplication') || '[]'),
+            exportDate: new Date().toISOString()
+        };
+
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `mentfx_progress_${new Date().toLocaleDateString().replace(/\//g, '-')}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    };
+
+    window.importProgress = (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        if (!confirm('Are you sure you want to import data? This will overwrite your current progress.')) {
+            event.target.value = '';
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const data = JSON.parse(e.target.result);
+                
+                if (data.mentfxData) localStorage.setItem('mentfxData', JSON.stringify(data.mentfxData));
+                if (data.mentfxMastery) localStorage.setItem('mentfxMastery', JSON.stringify(data.mentfxMastery));
+                if (data.mentfxProfile) localStorage.setItem('mentfxProfile', JSON.stringify(data.mentfxProfile));
+                if (data.mentfxApplication) localStorage.setItem('mentfxApplication', JSON.stringify(data.mentfxApplication));
+
+                alert('Import successful! The page will now reload.');
+                window.location.reload();
+            } catch (err) {
+                alert('Error importing data: ' + err.message);
+            }
+        };
+        reader.readAsText(file);
+    };
+
     // Range input sync
+
     document.getElementById('modal-understanding').addEventListener('input', (e) => {
         document.getElementById('modal-understanding-val').textContent = e.target.value;
     });
@@ -709,6 +812,118 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
         }
+        renderAnalytics();
+    }
+
+    function renderAnalytics() {
+        renderHeatmap();
+        renderComprehensionTrends();
+    }
+
+    function renderHeatmap() {
+        const grid = document.getElementById('heatmap-grid');
+        if (!grid) return;
+        grid.innerHTML = '';
+
+        // Group by date and count activity
+        const activityMap = {};
+        activityLog.forEach(log => {
+            activityMap[log.date] = (activityMap[log.date] || 0) + 1;
+        });
+
+        const today = new Date();
+        const oneYearAgo = new Date(today);
+        oneYearAgo.setFullYear(today.getFullYear() - 1);
+        
+        // Start from Sunday of the week 1 year ago
+        const start = new Date(oneYearAgo);
+        start.setDate(start.getDate() - start.getDay());
+
+        // Create 371 boxes (53 weeks * 7 days)
+        for (let i = 0; i < 371; i++) {
+            const current = new Date(start);
+            current.setDate(start.getDate() + i);
+            const dateStr = current.toISOString().split('T')[0];
+            const count = activityMap[dateStr] || 0;
+
+            const box = document.createElement('div');
+            box.className = 'heatmap-box';
+            
+            let level = 0;
+            if (count > 0) level = 1;
+            if (count > 2) level = 2;
+            if (count > 4) level = 3;
+            if (count > 6) level = 4;
+            
+            box.classList.add(`level-${level}`);
+            box.title = `${dateStr}: ${count} activity`;
+            grid.appendChild(box);
+        }
+    }
+
+    function renderComprehensionTrends() {
+        const ctx = document.getElementById('trendChart');
+        if (!ctx) return;
+
+        // Group by date and calculate average rating
+        const trendData = {};
+        activityLog.forEach(log => {
+            if (!trendData[log.date]) trendData[log.date] = { sum: 0, count: 0 };
+            trendData[log.date].sum += log.rating || 0;
+            trendData[log.date].count++;
+        });
+
+        const sortedDates = Object.keys(trendData).sort();
+        // Limit to last 30 entries for readability
+        const recentDates = sortedDates.slice(-30);
+        
+        const labels = recentDates.map(d => d.split('-').slice(1).join('/')); // MM/DD
+        const data = recentDates.map(d => (trendData[d].sum / trendData[d].count).toFixed(1));
+
+        if (trendChart) trendChart.destroy();
+
+        trendChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels.length ? labels : ['No Data'],
+                datasets: [{
+                    label: 'Avg Comprehension',
+                    data: data.length ? data : [0],
+                    borderColor: '#3b82f6',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    borderWidth: 2,
+                    pointRadius: labels.length > 1 ? 3 : 5,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                        titleColor: '#fff',
+                        bodyColor: '#fff',
+                        borderColor: 'rgba(255,255,255,0.1)',
+                        borderWidth: 1
+                    }
+                },
+                scales: {
+                    y: {
+                        min: 0,
+                        max: 5,
+                        grid: { color: 'rgba(255,255,255,0.05)' },
+                        ticks: { color: 'rgba(255,255,255,0.5)' }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: 'rgba(255,255,255,0.5)', maxTicksLimit: 7 }
+                    }
+                }
+            }
+        });
     }
 
     function renderApplication() {
@@ -726,6 +941,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             let linkHtml = item.link ? `<a href="${item.link}" target="_blank" class="btn-action">Watch</a>` : '';
             let notesHtml = item.notes ? `<div class="lesson-notes-preview" style="margin-top:0.5rem; opacity:0.7">${item.notes}</div>` : '';
+            let tagsHtml = (item.tags || []).map(t => `<span class="tag-badge">#${t}</span>`).join('');
 
             card.innerHTML = `
                 <div class="card-header">
@@ -733,6 +949,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <span class="status-badge ${statusClass}">${item.status}</span>
                 </div>
                 <div class="card-title">${item.name}</div>
+                <div class="tag-container">${tagsHtml}</div>
                 ${notesHtml}
                 <div class="card-rating">Comprehension: ${item.rating || 0}/5</div>
                 <div class="card-footer">
@@ -829,6 +1046,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                     <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" height="1.2em" width="1.2em" xmlns="http://www.w3.org/2000/svg"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
                                 </a>
                             </div>
+                            <div class="tag-container">${(prog.tags || []).map(t => `<span class="tag-badge">#${t}</span>`).join('')}</div>
                             ${notesHtml}
                         </div>
                     </div>
@@ -909,6 +1127,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         </td>
                         <td>
                             <div style="font-weight:500;">${lesson.name}</div>
+                            <div class="tag-container">${(prog.tags || []).map(t => `<span class="tag-badge">#${t}</span>`).join('')}</div>
                             ${notesHtml}
                         </td>
                         <td style="text-align:right">
@@ -979,15 +1198,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // Mastery View Switching
-    document.querySelectorAll('.mastery-view-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            currentMasteryViewMode = btn.dataset.modemastery;
-            document.querySelectorAll('.mastery-view-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            renderMastery();
-        });
-    });
 
     // Tab switching (Update to include Mastery)
     function showTab(targetId) {
@@ -998,7 +1208,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (activeTab) activeTab.classList.add('active');
         
         const view = document.getElementById(`${targetId}-view`);
-        if (view) view.classList.add('active');
+        if (view) {
+            view.classList.add('active');
+            // Scroll to top of main content
+            document.querySelector('.main-content').scrollTop = 0;
+        }
 
         if (targetId === 'tracker') renderCurrentView();
         if (targetId === 'dashboard') updateDashboard();
@@ -1022,12 +1236,90 @@ document.addEventListener('DOMContentLoaded', () => {
         showTab('tracker');
     };
 
-    document.querySelectorAll('.nav-links li, .clickable-logo').forEach(tab => {
-        tab.addEventListener('click', () => {
-            const targetId = tab.dataset.tab || 'dashboard';
-            showTab(targetId);
+
+    // Filtering
+    if (searchFilter) searchFilter.addEventListener('input', renderTable);
+    if (statusFilter) statusFilter.addEventListener('change', renderTable);
+
+    function handleGlobalSearch(query) {
+        showTab('search-results');
+        const resultsContainer = document.getElementById('search-results-content');
+        const statsEl = document.getElementById('search-stats');
+        resultsContainer.innerHTML = '';
+
+        let matches = [];
+
+        // Search Webinars
+        appData.forEach(wb => {
+            const matchInTags = (wb.tags || []).some(t => t.toLowerCase().includes(query));
+            if (wb.name.toLowerCase().includes(query) || (wb.notes && wb.notes.toLowerCase().includes(query)) || matchInTags) {
+                matches.push({ ...wb, type: 'webinar' });
+            }
         });
-    });
+
+        // Search Mastery
+        masteryData.forEach(mod => {
+            mod.lessons.forEach(lesson => {
+                const prog = masteryProgress[lesson.id] || {};
+                const matchInTags = (prog.tags || []).some(t => t.toLowerCase().includes(query));
+                if (lesson.name.toLowerCase().includes(query) || (prog.notes && prog.notes.toLowerCase().includes(query)) || matchInTags) {
+                    matches.push({ ...lesson, type: 'mastery', status: prog.status || 'Not Started', rating: prog.rating || 0, tags: prog.tags || [] });
+                }
+            });
+        });
+
+        // Search Application
+        appApplicationData.forEach(app => {
+            const matchInTags = (app.tags || []).some(t => t.toLowerCase().includes(query));
+            if (app.name.toLowerCase().includes(query) || (app.notes && app.notes.toLowerCase().includes(query)) || matchInTags) {
+                matches.push({ ...app, type: 'application' });
+            }
+        });
+
+        statsEl.textContent = `Found ${matches.length} matches across all categories.`;
+
+        matches.forEach(item => {
+            const card = document.createElement('div');
+            card.className = 'webinar-card glass';
+
+            let statusClass = 'status-not-started';
+            if (item.status === 'In Progress') statusClass = 'status-in-progress';
+            if (item.status === 'Completed') statusClass = 'status-completed';
+
+            let typeLabel = item.type.charAt(0).toUpperCase() + item.type.slice(1);
+            let tagsHtml = (item.tags || []).map(t => `<span class="tag-badge">#${t}</span>`).join('');
+
+            card.innerHTML = `
+                <div class="card-header">
+                    <span class="card-month">${typeLabel}</span>
+                    <span class="status-badge ${statusClass}">${item.status || 'Not Started'}</span>
+                </div>
+                <div class="card-title">${item.name}</div>
+                <div class="tag-container">${tagsHtml}</div>
+                <div class="card-rating">Comprehension: ${item.rating || 0}/5</div>
+                <div class="card-footer">
+                    <button class="btn-action" style="flex:1" onclick="openEditModal('${item.id}', '${item.type}')">View & Edit</button>
+                </div>
+            `;
+            resultsContainer.appendChild(card);
+        });
+    }
+
+    // Update showTab to handle search-results and ensure global accessibility
+    const originalShowTab = showTab;
+    window.showTab = (targetId) => {
+        if (targetId === 'search-results') {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('.nav-links li').forEach(t => t.classList.remove('active'));
+            const searchView = document.getElementById('search-results-view');
+            if (searchView) {
+                searchView.classList.add('active');
+                document.querySelector('.main-content').scrollTop = 0;
+            }
+            return;
+        }
+        originalShowTab(targetId);
+    };
 
     // Initial Load
     showTab('dashboard');
@@ -1088,6 +1380,50 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    setInterval(updateClock, 1000);
+    // Expose functions to window for onclick handlers
+    window.openEditModal = openEditModal;
+    window.saveChanges = saveChanges;
+    window.closeModal = closeModal;
+    window.openProfileModal = openProfileModal;
+    window.closeProfileModal = closeProfileModal;
+    window.saveProfile = saveProfile;
+    window.exportProgress = exportProgress;
+    window.importProgress = importProgress;
+    window.renderAnalytics = renderAnalytics;
+    window.updateDashboard = updateDashboard;
+    window.renderHeatmap = renderHeatmap;
+    window.renderComprehensionTrends = renderComprehensionTrends;
+
+    // Stubs for server sync (to be implemented if backend is added)
+    function loadFromServer() { console.log("Cloud sync: Loading data..."); }
+    function saveToServer() { console.log("Cloud sync: Saving data..."); }
+
     updateClock();
+
+    // Tag Click Filtering Logic
+    document.addEventListener('click', (e) => {
+        if (e.target.classList.contains('tag-badge')) {
+            const tagName = e.target.textContent.replace('#', '').trim();
+            // If it's a global search tag, just update global search
+            if (e.target.closest('#search-results-view')) {
+                document.getElementById('global-search').value = tagName;
+                handleGlobalSearch(tagName);
+                return;
+            }
+            
+            // Otherwise, filter the active view
+            const activeView = document.querySelector('.view.active');
+            if (activeView.id === 'tracker-view') {
+                searchFilter.value = tagName;
+                renderCurrentView();
+            } else if (activeView.id === 'dashboard-view') {
+                document.getElementById('global-search').value = tagName;
+                handleGlobalSearch(tagName);
+            } else {
+                // For other views, we use global search as a fallback for specific tag filtering
+                document.getElementById('global-search').value = tagName;
+                handleGlobalSearch(tagName);
+            }
+        }
+    });
 });
