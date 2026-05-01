@@ -1200,7 +1200,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // Tab switching (Update to include Mastery)
-    function showTab(targetId) {
+    window.showTab = (targetId) => {
+        console.log(`Switching to tab: ${targetId}`);
         document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
         document.querySelectorAll('.nav-links li').forEach(t => t.classList.remove('active'));
         
@@ -1210,15 +1211,18 @@ document.addEventListener('DOMContentLoaded', () => {
         const view = document.getElementById(`${targetId}-view`);
         if (view) {
             view.classList.add('active');
-            // Scroll to top of main content
             document.querySelector('.main-content').scrollTop = 0;
+            console.log(`View ${targetId}-view is now active.`);
+        } else {
+            console.error(`View ${targetId}-view not found!`);
         }
 
         if (targetId === 'tracker') renderCurrentView();
         if (targetId === 'dashboard') updateDashboard();
         if (targetId === 'mastery') renderMastery();
         if (targetId === 'application') renderApplication();
-    }
+        if (targetId === 'admin') renderAdminManageList();
+    };
 
     // Dashboard Quick Filters
     document.getElementById('in-progress-card').onclick = () => {
@@ -1393,81 +1397,224 @@ document.addEventListener('DOMContentLoaded', () => {
     window.updateDashboard = updateDashboard;
     window.renderHeatmap = renderHeatmap;
     window.renderComprehensionTrends = renderComprehensionTrends;
-    window.showAdminView = showAdminView;
-    window.pushToGitHub = pushToGitHub;
 
 
-    // Stubs for server sync (to be implemented if backend is added)
-    function loadFromServer() { console.log("Cloud sync: Loading data..."); }
-    function saveToServer() { console.log("Cloud sync: Saving data..."); }
-
-    function showAdminView() {
-        closeProfileModal();
-        showTab('admin');
+    // Server sync implementations
+    async function loadFromServer() {
+        if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') return;
+        
+        console.log("Local Server sync: Loading data...");
+        try {
+            const resp = await fetch('/api/load');
+            if (!resp.ok) throw new Error('Failed to load from server');
+            const data = await resp.json();
+            
+            if (data.webinars && data.webinars.length > 0) {
+                appData = data.webinars;
+                localStorage.setItem('mentfxData', JSON.stringify(appData));
+            }
+            if (data.mastery && Object.keys(data.mastery).length > 0) {
+                masteryProgress = data.mastery;
+                localStorage.setItem('mentfxMastery', JSON.stringify(masteryProgress));
+            }
+            if (data.profile && data.profile.name) {
+                userProfile = data.profile;
+                localStorage.setItem('mentfxProfile', JSON.stringify(userProfile));
+                updateProfileUI();
+            }
+            if (data.application && data.application.length > 0) {
+                appApplicationData = data.application;
+                localStorage.setItem('mentfxApplication', JSON.stringify(appApplicationData));
+            }
+            
+            // Refresh all views
+            renderCurrentView();
+            renderMastery();
+            renderApplication();
+            updateDashboard();
+            console.log("Local Server sync: Success");
+        } catch (e) {
+            console.warn("Local Server sync failed (Is scratch/server.js running?):", e);
+        }
     }
 
-    async function pushToGitHub() {
-        const name = document.getElementById('admin-webinar-name').value.trim();
-        const link = document.getElementById('admin-webinar-link').value.trim();
-        const month = document.getElementById('admin-webinar-month').value.trim();
-        const token = document.getElementById('admin-github-token').value.trim();
+    async function saveToServer() {
+        if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') return;
+        
+        const data = {
+            webinars: appData,
+            mastery: masteryProgress,
+            profile: userProfile,
+            application: appApplicationData
+        };
 
-        if (!name || !link || !month || !token) {
+        try {
+            const resp = await fetch('/api/save', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            if (!resp.ok) throw new Error('Save failed');
+            console.log("Local Server sync: Data saved successfully");
+        } catch (e) {
+            console.error("Local Server sync save failed:", e);
+        }
+    }
+
+    // Admin Logic
+    window.showAdminView = () => {
+        console.log("Opening Admin View...");
+        try {
+            if (typeof closeProfileModal === 'function') closeProfileModal();
+            showTab('admin');
+            loadAdminSettings();
+        } catch (e) {
+            console.error("Error opening admin view:", e);
+        }
+    };
+
+    // Tab Switching for Admin
+    document.querySelectorAll('.admin-tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const target = btn.dataset.adminTab;
+            document.querySelectorAll('.admin-tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
+            
+            btn.classList.add('active');
+            document.getElementById(`admin-section-${target}`).classList.add('active');
+        });
+    });
+
+    function loadAdminSettings() {
+        const token = localStorage.getItem('mentfx_github_token');
+        if (token) {
+            document.getElementById('admin-github-token').value = token;
+            document.getElementById('admin-remember-token').checked = true;
+        }
+    }
+
+    window.resetAdminForm = () => {
+        document.getElementById('admin-item-name').value = '';
+        document.getElementById('admin-item-link').value = '';
+        document.getElementById('admin-item-group').value = '';
+    };
+
+    async function handleAdminPush() {
+        const category = document.getElementById('admin-item-category').value;
+        const name = document.getElementById('admin-item-name').value.trim();
+        const link = document.getElementById('admin-item-link').value.trim();
+        const group = document.getElementById('admin-item-group').value.trim();
+        const token = document.getElementById('admin-github-token').value.trim();
+        const owner = document.getElementById('admin-repo-owner').value.trim();
+        const repo = document.getElementById('admin-repo-name').value.trim();
+        const remember = document.getElementById('admin-remember-token').checked;
+
+        if (!name || !link || !group || !token) {
             alert('Please fill in all fields and provide your GitHub token.');
             return;
         }
 
+        if (remember) localStorage.setItem('mentfx_github_token', token);
+        else localStorage.removeItem('mentfx_github_token');
+
         const btn = document.getElementById('btn-push-update');
         const originalText = btn.innerHTML;
         btn.disabled = true;
-        btn.innerHTML = 'Updating GitHub...';
+        btn.innerHTML = 'Syncing...';
 
         try {
-            // Configuration - You can make these dynamic later if needed
-            const owner = 'thatkingmag';
-            const repo = 'Mentfx-Mastery-Dashboard';
-            const path = 'data.js';
+            // Determine which file to update
+            let filePath = 'data.js';
+            let arrayName = 'webinarData';
+            if (category === 'mastery') {
+                filePath = 'masteryData.js';
+                arrayName = 'masteryData';
+            } else if (category === 'application') {
+                filePath = 'applicationData.js';
+                arrayName = 'applicationData';
+            }
 
             // 1. Get current file content & SHA
-            const getResp = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`, {
+            const getResp = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`, {
                 headers: { 'Authorization': `token ${token}` }
             });
 
-            if (!getResp.ok) throw new Error('Failed to fetch data.js from GitHub');
+            if (!getResp.ok) throw new Error(`Failed to fetch ${filePath} from GitHub`);
             const fileData = await getResp.json();
             const currentContent = atob(fileData.content);
             const sha = fileData.sha;
 
             // 2. Parse and update
-            // We use a regex to extract the JSON array part
-            const arrayMatch = currentContent.match(/const webinarData = ([\s\S]*);/);
-            if (!arrayMatch) throw new Error('Could not parse data.js structure');
+            const regex = new RegExp(`const ${arrayName} = ([\\s\\S]*?);`);
+            const arrayMatch = currentContent.match(regex);
+            if (!arrayMatch) throw new Error(`Could not parse ${filePath} structure`);
             
             let dataArray = JSON.parse(arrayMatch[1]);
             
-            // Add new item
-            dataArray.push({
-                id: name,
+            const itemId = name.toLowerCase().replace(/\s+/g, '-');
+            let newItem = {
+                id: itemId,
                 name: name,
-                link: link,
-                monthGroup: month,
-                status: "Not Started",
-                notes: "",
-                keyTakeaways: "",
-                rating: 0
-            });
+                link: link
+            };
 
-            const newContent = `const webinarData = ${JSON.stringify(dataArray, null, 4)};\n`;
+            if (category === 'webinar') {
+                newItem.monthGroup = group;
+                // Merge with existing properties if any
+                const existing = dataArray.find(item => item.id === itemId);
+                if (existing) {
+                    newItem = { ...existing, ...newItem };
+                } else {
+                    newItem.status = "Not Started";
+                    newItem.notes = "";
+                    newItem.rating = 0;
+                }
+                
+                const existingIndex = dataArray.findIndex(item => item.id === itemId);
+                if (existingIndex > -1) dataArray[existingIndex] = newItem;
+                else dataArray.push(newItem);
+            } else if (category === 'mastery') {
+                const modNum = parseInt(group) || 0;
+                let mod = dataArray.find(m => m.module === modNum);
+                if (!mod) {
+                    mod = { module: modNum, title: `Module ${modNum}`, lessons: [] };
+                    dataArray.push(mod);
+                    // Sort modules by number
+                    dataArray.sort((a, b) => a.module - b.module);
+                }
+                
+                const lessonItem = { id: itemId, name: name, link: link };
+                const lIdx = mod.lessons.findIndex(l => l.id === itemId);
+                if (lIdx > -1) mod.lessons[lIdx] = lessonItem;
+                else mod.lessons.push(lessonItem);
+            } else if (category === 'application') {
+                newItem.category = group;
+                // Merge with existing
+                const existing = dataArray.find(item => item.id === itemId);
+                if (existing) {
+                    newItem = { ...existing, ...newItem };
+                } else {
+                    newItem.status = "Not Started";
+                    newItem.notes = "";
+                    newItem.rating = 0;
+                }
+                
+                const existingIndex = dataArray.findIndex(item => item.id === itemId);
+                if (existingIndex > -1) dataArray[existingIndex] = newItem;
+                else dataArray.push(newItem);
+            }
+
+            const newContent = `const ${arrayName} = ${JSON.stringify(dataArray, null, 4)};\n`;
 
             // 3. Push back to GitHub
-            const putResp = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`, {
+            const putResp = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`, {
                 method: 'PUT',
                 headers: {
                     'Authorization': `token ${token}`,
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    message: `Admin: Add ${name} to webinar list`,
+                    message: `Admin: Update ${name} in ${category} list`,
                     content: btoa(unescape(encodeURIComponent(newContent))),
                     sha: sha,
                     branch: 'main'
@@ -1479,11 +1626,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error(error.message || 'Failed to update GitHub');
             }
 
-            alert(`Successfully added ${name}! The site will update in a few minutes.`);
-            
-            // Clear inputs
-            document.getElementById('admin-webinar-name').value = '';
-            document.getElementById('admin-webinar-link').value = '';
+            // 4. Update Local State Immediately
+            updateLocalState(category, newItem);
+
+            // 5. Sync with Local Server (if running locally)
+            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                try {
+                    await fetch('/api/admin/save-file', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ fileName: filePath, content: newContent })
+                    });
+                    console.log(`Local ${filePath} updated.`);
+                } catch (e) {
+                    console.warn("Failed to sync with local server:", e);
+                }
+            }
+
+            alert(`Successfully synced ${name}! Local dashboard and ${filePath} updated.`);
+            resetAdminForm();
             
         } catch (err) {
             console.error(err);
@@ -1494,8 +1655,252 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function updateLocalState(category, item) {
+        if (category === 'webinar') {
+            const idx = appData.findIndex(w => w.id === item.id);
+            if (idx > -1) appData[idx] = { ...appData[idx], ...item };
+            else appData.push(item);
+            localStorage.setItem('mentfxData', JSON.stringify(appData));
+        } else if (category === 'mastery') {
+            if (typeof masteryData !== 'undefined') {
+                const modNum = parseInt(item.module) || 0;
+                let mod = masteryData.find(m => m.module === modNum);
+                if (mod) {
+                    const lIdx = mod.lessons.findIndex(l => l.id === item.id);
+                    if (lIdx > -1) mod.lessons[lIdx] = { ...mod.lessons[lIdx], ...item };
+                    else mod.lessons.push(item);
+                } else {
+                    // New module
+                    masteryData.push({ module: modNum, title: `Module ${modNum}`, lessons: [item] });
+                    masteryData.sort((a, b) => a.module - b.module);
+                }
+            }
+        } else if (category === 'application') {
+            const idx = appApplicationData.findIndex(a => a.id === item.id);
+            if (idx > -1) appApplicationData[idx] = { ...appApplicationData[idx], ...item };
+            else appApplicationData.push(item);
+            localStorage.setItem('mentfxApplication', JSON.stringify(appApplicationData));
+        }
+        
+        // Refresh UI
+        updateDashboard();
+        if (category === 'webinar') renderCurrentView();
+        if (category === 'mastery') renderMastery();
+        if (category === 'application') renderApplication();
+        
+        // Also save to local server if possible
+        saveToServer();
+    }
+
+    window.renderAdminManageList = () => {
+        const list = document.getElementById('admin-manage-list');
+        list.innerHTML = '';
+        
+        let allItems = [
+            ...appData.map(i => ({ ...i, type: 'webinar' })),
+            ...appApplicationData.map(i => ({ ...i, type: 'application' }))
+        ];
+
+        // Add Mastery lessons to the management list
+        if (typeof masteryData !== 'undefined') {
+            masteryData.forEach(mod => {
+                mod.lessons.forEach(l => {
+                    allItems.push({ ...l, type: 'mastery', moduleNum: mod.module, moduleTitle: mod.title });
+                });
+            });
+        }
+
+        // Search/Filter
+        const query = document.getElementById('admin-manage-search').value.toLowerCase();
+        const filtered = allItems.filter(i => 
+            i.name.toLowerCase().includes(query) || 
+            (i.id && i.id.toLowerCase().includes(query)) ||
+            (i.monthGroup && i.monthGroup.toLowerCase().includes(query)) ||
+            (i.category && i.category.toLowerCase().includes(query))
+        );
+
+        filtered.forEach(item => {
+            const el = document.createElement('div');
+            el.className = 'admin-item';
+            
+            let subtitle = '';
+            if (item.type === 'webinar') subtitle = item.monthGroup || 'No Group';
+            else if (item.type === 'application') subtitle = item.category || 'No Category';
+            else if (item.type === 'mastery') subtitle = `Module ${item.moduleNum}: ${item.moduleTitle}`;
+
+            el.innerHTML = `
+                <div class="admin-item-info">
+                    <span class="admin-badge badge-${item.type}">${item.type}</span>
+                    <h4>${item.name}</h4>
+                    <p>${subtitle}</p>
+                </div>
+                <div class="admin-item-actions">
+                    <button class="btn-icon" onclick="editAdminItem('${item.id}', '${item.type}')" title="Edit">
+                        <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" height="1.1em" width="1.1em" xmlns="http://www.w3.org/2000/svg"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                    </button>
+                    <button class="btn-icon delete" onclick="deleteAdminItem('${item.id}', '${item.type}')" title="Delete">
+                        <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" height="1.1em" width="1.1em" xmlns="http://www.w3.org/2000/svg"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                    </button>
+                </div>
+            `;
+            list.appendChild(el);
+        });
+    };
+
+    window.editAdminItem = (id, type) => {
+        let item;
+        let groupVal = '';
+        if (type === 'webinar') {
+            item = appData.find(w => w.id === id);
+            groupVal = item ? item.monthGroup : '';
+        } else if (type === 'application') {
+            item = appApplicationData.find(a => a.id === id);
+            groupVal = item ? item.category : '';
+        } else if (type === 'mastery') {
+            masteryData.forEach(mod => {
+                const l = mod.lessons.find(ls => ls.id === id);
+                if (l) {
+                    item = l;
+                    groupVal = mod.module;
+                }
+            });
+        }
+        
+        if (item) {
+            document.getElementById('admin-item-category').value = type;
+            document.getElementById('admin-item-name').value = item.name;
+            document.getElementById('admin-item-link').value = item.link;
+            document.getElementById('admin-item-group').value = groupVal;
+            
+            // Switch to Add tab
+            document.querySelector('[data-admin-tab="add"]').click();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    };
+
+    window.deleteAdminItem = async (id, type) => {
+        if (!confirm(`Are you sure you want to delete this ${type}? This will sync to GitHub.`)) return;
+        
+        const token = document.getElementById('admin-github-token').value.trim();
+        const owner = document.getElementById('admin-repo-owner').value.trim();
+        const repo = document.getElementById('admin-repo-name').value.trim();
+        
+        if (!token) {
+            alert('Please provide your GitHub token in Settings to delete from the cloud.');
+            return;
+        }
+
+        try {
+            // Determine which file to update
+            let filePath = 'data.js';
+            let arrayName = 'webinarData';
+            if (type === 'mastery') {
+                filePath = 'masteryData.js';
+                arrayName = 'masteryData';
+            } else if (type === 'application') {
+                filePath = 'applicationData.js';
+                arrayName = 'applicationData';
+            }
+
+            // 1. Get current file content & SHA from GitHub
+            const getResp = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`, {
+                headers: { 'Authorization': `token ${token}` }
+            });
+
+            if (!getResp.ok) throw new Error(`Failed to fetch ${filePath} from GitHub`);
+            const fileData = await getResp.json();
+            const currentContent = atob(fileData.content);
+            const sha = fileData.sha;
+
+            // 2. Parse and update
+            const regex = new RegExp(`const ${arrayName} = ([\\s\\S]*?);`);
+            const arrayMatch = currentContent.match(regex);
+            if (!arrayMatch) throw new Error(`Could not parse ${filePath} structure`);
+            
+            let dataArray = JSON.parse(arrayMatch[1]);
+            
+            // Delete logic
+            if (type === 'mastery') {
+                dataArray.forEach(mod => {
+                    mod.lessons = mod.lessons.filter(l => l.id !== id);
+                });
+            } else {
+                dataArray = dataArray.filter(item => item.id !== id);
+            }
+
+            const newContent = `const ${arrayName} = ${JSON.stringify(dataArray, null, 4)};\n`;
+
+            // 3. Push back to GitHub
+            const putResp = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `token ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    message: `Admin: Delete ${id} from ${type} list`,
+                    content: btoa(unescape(encodeURIComponent(newContent))),
+                    sha: sha,
+                    branch: 'main'
+                })
+            });
+
+            if (!putResp.ok) {
+                const error = await putResp.json();
+                throw new Error(error.message || 'Failed to update GitHub');
+            }
+
+            // 4. Update Local State
+            if (type === 'webinar') {
+                appData = appData.filter(w => w.id !== id);
+                localStorage.setItem('mentfxData', JSON.stringify(appData));
+            } else if (type === 'mastery') {
+                if (typeof masteryData !== 'undefined') {
+                    masteryData.forEach(mod => {
+                        mod.lessons = mod.lessons.filter(l => l.id !== id);
+                    });
+                }
+                delete masteryProgress[id];
+                localStorage.setItem('mentfxMastery', JSON.stringify(masteryProgress));
+            } else if (type === 'application') {
+                appApplicationData = appApplicationData.filter(a => a.id !== id);
+                localStorage.setItem('mentfxApplication', JSON.stringify(appApplicationData));
+            }
+
+            // 5. Sync with Local Server
+            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                try {
+                    await fetch('/api/admin/save-file', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ fileName: filePath, content: newContent })
+                    });
+                } catch (e) {
+                    console.warn("Failed to sync with local server:", e);
+                }
+                saveToServer();
+            }
+
+            alert(`Successfully deleted ${id}! Local files and GitHub updated.`);
+            renderAdminManageList();
+            updateDashboard();
+            renderCurrentView();
+            renderMastery();
+            renderApplication();
+
+        } catch (err) {
+            console.error(err);
+            alert('Error deleting item: ' + err.message);
+        }
+    };
+
+    document.getElementById('admin-manage-search').addEventListener('input', renderAdminManageList);
+
+    window.handleAdminPush = handleAdminPush;
+
 
     updateClock();
+    setInterval(updateClock, 1000);
 
     // Tag Click Filtering Logic
     document.addEventListener('click', (e) => {
