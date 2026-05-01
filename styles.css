@@ -1098,7 +1098,7 @@ input[type=range]::-webkit-slider-runnable-track {
         z-index: 5001 !important;
         background: #0f172a !important;
         box-shadow: 20px 0 50px rgba(0,0,0,0.5) !important;
-        transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.4s !important;
         width: 280px !important;
         height: 100vh !important;
         display: flex !important;
@@ -1107,9 +1107,14 @@ input[type=range]::-webkit-slider-runnable-track {
         border-right: 1px solid var(--border) !important;
         border-top: none !important;
         backdrop-filter: blur(20px);
+        visibility: hidden; /* Hide completely when closed */
+        overflow-y: auto;
     }
     
-    .sidebar.active { transform: translateX(280px) !important; }
+    .sidebar.active { 
+        transform: translateX(280px) !important; 
+        visibility: visible;
+    }
     
     .sidebar .brand, .sidebar-stats, .mini-dashboard, .sidebar-search, .nav-links {
         display: flex !important;
@@ -1124,7 +1129,7 @@ input[type=range]::-webkit-slider-runnable-track {
     .main-content {
         margin-left: 0 !important;
         padding: 1.25rem !important;
-        padding-top: 5.5rem !important; /* Space for hamburger header */
+        padding-top: 6.5rem !important; /* Increased space for hamburger */
         width: 100% !important;
         min-height: 100vh !important;
         display: block !important;
@@ -1135,17 +1140,17 @@ input[type=range]::-webkit-slider-runnable-track {
         align-items: center;
         justify-content: center;
         position: fixed;
-        top: 1.25rem;
-        left: 1.25rem;
+        top: 1.5rem;
+        left: 1.5rem;
         z-index: 5002;
-        width: 44px;
-        height: 44px;
-        background: rgba(30, 41, 59, 0.8);
+        width: 48px;
+        height: 48px;
+        background: rgba(30, 41, 59, 0.9);
         backdrop-filter: blur(12px);
-        border: 1px solid rgba(255,255,255,0.1);
+        border: 1px solid rgba(255,255,255,0.15);
         border-radius: 12px;
         color: white;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        box-shadow: 0 8px 32px rgba(0,0,0,0.4);
     }
 
     .sidebar-overlay {
