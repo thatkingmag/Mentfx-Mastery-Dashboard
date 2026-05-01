@@ -133,5 +133,14 @@ const applicationData = [
         "status": "Not Started",
         "notes": "",
         "rating": 0
+    },
+    {
+        "id": "part-ii-trading-model-part-2.0",
+        "name": "Part II Trading Model Part 2.0",
+        "link": "https://youtu.be/VfMR3hSuJao",
+        "category": "System",
+        "status": "Not Started",
+        "notes": "",
+        "rating": 0
     }
 ];
