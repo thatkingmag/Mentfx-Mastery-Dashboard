@@ -428,8 +428,21 @@ header p {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 0.5rem;
-    font-size: 0.85rem;
+    margin-bottom: 0.4rem;
+    font-size: 0.825rem;
+}
+
+.m-lbl {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    color: var(--text-main);
+    font-weight: 500;
+}
+
+.m-lbl svg {
+    font-size: 0.95rem;
+    color: var(--text-muted);
 }
 
 .m-val {
