@@ -1108,25 +1108,25 @@ input[type=range]::-webkit-slider-runnable-track {
         left: -280px !important;
         top: 0 !important;
         bottom: 0 !important;
-        z-index: 5001 !important;
-        background: #0f172a !important;
-        box-shadow: 20px 0 50px rgba(0,0,0,0.5) !important;
+        z-index: 9999 !important; /* Maximum priority */
+        background: #0f172a !important; /* 100% Solid background */
+        box-shadow: 20px 0 60px rgba(0,0,0,0.8) !important;
         transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.4s !important;
         width: 280px !important;
         height: 100vh !important;
         display: flex !important;
         flex-direction: column !important;
-        padding: 4.5rem 1.5rem 2rem 1.5rem !important; /* Added 4.5rem top padding for hamburger clearance */
+        padding: 4.5rem 1.5rem 2rem 1.5rem !important;
         border-right: 1px solid var(--border) !important;
         border-top: none !important;
-        backdrop-filter: blur(20px);
         visibility: hidden;
         overflow-y: auto;
         overflow-x: hidden;
+        transform: translateZ(0); /* Force GPU layer to prevent bleeding */
     }
     
     .sidebar.active { 
-        transform: translateX(280px) !important; 
+        transform: translateX(280px) translateZ(0) !important; 
         visibility: visible;
     }
     
@@ -1174,24 +1174,25 @@ input[type=range]::-webkit-slider-runnable-track {
         position: fixed;
         top: 1.5rem;
         left: 1.5rem;
-        z-index: 5002;
+        z-index: 10000; /* Always on top of sidebar */
         width: 48px;
         height: 48px;
-        background: rgba(30, 41, 59, 0.9);
+        background: rgba(30, 41, 59, 0.95);
         backdrop-filter: blur(12px);
-        border: 1px solid rgba(255,255,255,0.15);
+        border: 1px solid rgba(255,255,255,0.2);
         border-radius: 12px;
         color: white;
-        box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+        box-shadow: 0 8px 32px rgba(0,0,0,0.5);
     }
 
     .sidebar-overlay {
         position: fixed;
         top: 0; left: 0; right: 0; bottom: 0;
-        background: rgba(0,0,0,0.7);
-        backdrop-filter: blur(6px);
-        z-index: 5000;
+        background: rgba(0,0,0,0.8);
+        backdrop-filter: blur(8px);
+        z-index: 9998; /* Just below sidebar */
         display: none;
+        transform: translateZ(0);
     }
     .sidebar-overlay.active { display: block; }
 
