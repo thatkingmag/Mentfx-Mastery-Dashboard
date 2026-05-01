@@ -1134,6 +1134,9 @@ input[type=range]::-webkit-slider-runnable-track {
         display: flex !important;
     }
     
+    .mini-dashboard { flex-direction: column !important; align-items: center !important; width: 100% !important; box-sizing: border-box !important; }
+    .m-stat { width: 100% !important; }
+    
     .nav-links { flex-direction: column !important; gap: 0.5rem !important; }
     .nav-links li { flex-direction: row !important; padding: 0.875rem 1rem !important; border-radius: 8px !important; justify-content: flex-start !important; }
     .nav-links li span { display: block !important; font-size: 0.9rem !important; margin-left: 0.75rem !important; }
