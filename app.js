@@ -1398,6 +1398,18 @@ document.addEventListener('DOMContentLoaded', () => {
     window.renderHeatmap = renderHeatmap;
     window.renderComprehensionTrends = renderComprehensionTrends;
 
+    // Admin view — defined here early so onclick="showAdminView()" always resolves,
+    // even if later code throws. The full body is also set at line ~1465.
+    window.showAdminView = () => {
+        try {
+            if (typeof closeProfileModal === 'function') closeProfileModal();
+            showTab('admin');
+            if (typeof loadAdminSettings === 'function') loadAdminSettings();
+        } catch (e) {
+            console.error('Error opening admin view:', e);
+        }
+    };
+
 
     // Server sync implementations
     async function loadFromServer() {
