@@ -1668,7 +1668,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    window.toggleItemComplete = (id, category) => {
+    function toggleItemComplete(id, category) {
         if (category === 'webinar') {
             const item = appData.find(w => w.id === id);
             if (!item) return;
@@ -1689,7 +1689,7 @@ document.addEventListener('DOMContentLoaded', () => {
             updateStreak();
             renderNextUp();
         }
-    };
+    }
 
     // Admin Logic
     window.showAdminView = () => {
