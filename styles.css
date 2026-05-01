@@ -1103,12 +1103,13 @@ input[type=range]::-webkit-slider-runnable-track {
         height: 100vh !important;
         display: flex !important;
         flex-direction: column !important;
-        padding: 2rem 1.5rem !important;
+        padding: 2rem 1.25rem !important; /* Slightly reduced horizontal padding */
         border-right: 1px solid var(--border) !important;
         border-top: none !important;
         backdrop-filter: blur(20px);
-        visibility: hidden; /* Hide completely when closed */
+        visibility: hidden;
         overflow-y: auto;
+        overflow-x: hidden; /* Prevent horizontal leakage */
     }
     
     .sidebar.active { 
@@ -1125,6 +1126,11 @@ input[type=range]::-webkit-slider-runnable-track {
     .nav-links li span { display: block !important; font-size: 0.9rem !important; margin-left: 0.75rem !important; }
     .nav-links li svg { font-size: 1.2rem !important; }
     .nav-links li.active::before { display: none !important; }
+
+    .sidebar-chart-wrap { height: 140px !important; margin-bottom: 1rem !important; }
+    .mini-dashboard.glass { padding: 1.25rem !important; margin-bottom: 1.5rem !important; }
+    .m-stat { font-size: 0.8rem !important; margin-bottom: 0.4rem !important; }
+    .nav-links li span { font-size: 0.85rem !important; }
 
     .main-content {
         margin-left: 0 !important;
