@@ -101,6 +101,10 @@ body {
     opacity: 0.9;
 }
 
+.hamburger {
+    display: none;
+}
+
 .sidebar-search {
     margin-bottom: 1.5rem;
 }
