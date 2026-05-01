@@ -1103,13 +1103,13 @@ input[type=range]::-webkit-slider-runnable-track {
         height: 100vh !important;
         display: flex !important;
         flex-direction: column !important;
-        padding: 2rem 1.25rem !important; /* Slightly reduced horizontal padding */
+        padding: 4.5rem 1.5rem 2rem 1.5rem !important; /* Added 4.5rem top padding for hamburger clearance */
         border-right: 1px solid var(--border) !important;
         border-top: none !important;
         backdrop-filter: blur(20px);
         visibility: hidden;
         overflow-y: auto;
-        overflow-x: hidden; /* Prevent horizontal leakage */
+        overflow-x: hidden;
     }
     
     .sidebar.active { 
@@ -1127,10 +1127,20 @@ input[type=range]::-webkit-slider-runnable-track {
     .nav-links li svg { font-size: 1.2rem !important; }
     .nav-links li.active::before { display: none !important; }
 
-    .sidebar-chart-wrap { height: 140px !important; margin-bottom: 1rem !important; }
+    .sidebar-chart-wrap { 
+        height: 140px !important; 
+        margin: 0 auto 1.5rem auto !important; 
+        width: 90% !important; 
+    }
     .mini-dashboard.glass { padding: 1.25rem !important; margin-bottom: 1.5rem !important; }
-    .m-stat { font-size: 0.8rem !important; margin-bottom: 0.4rem !important; }
-    .nav-links li span { font-size: 0.85rem !important; }
+    .m-stat { 
+        font-size: 0.85rem !important; 
+        margin-bottom: 0.75rem !important; 
+        padding: 0 0.25rem !important;
+    }
+    .nav-links li span { font-size: 0.9rem !important; }
+    .sidebar .brand h2 { font-size: 1.25rem !important; }
+    .sidebar .brand .creator-tag { font-size: 0.65rem !important; }
 
     .main-content {
         margin-left: 0 !important;
