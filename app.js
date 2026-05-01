@@ -1560,8 +1560,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const regex = new RegExp(`const ${arrayName} = ([\\s\\S]*?);`);
             const arrayMatch = currentContent.match(regex);
             if (!arrayMatch) throw new Error(`Could not parse ${filePath} structure`);
-            
-            let dataArray = JSON.parse(arrayMatch[1]);
+            let dataArray;
+            try {
+                dataArray = Function('"use strict"; return ' + arrayMatch[1])();
+            } catch (parseErr) {
+                throw new Error('Could not evaluate ' + filePath + ': ' + parseErr.message);
+            }
             
             const itemId = name.toLowerCase().replace(/\s+/g, '-');
             let newItem = {
@@ -1828,8 +1832,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const regex = new RegExp(`const ${arrayName} = ([\\s\\S]*?);`);
             const arrayMatch = currentContent.match(regex);
             if (!arrayMatch) throw new Error(`Could not parse ${filePath} structure`);
-            
-            let dataArray = JSON.parse(arrayMatch[1]);
+            let dataArray;
+            try {
+                dataArray = Function('"use strict"; return ' + arrayMatch[1])();
+            } catch (parseErr) {
+                throw new Error('Could not evaluate ' + filePath + ': ' + parseErr.message);
+            }
             
             // Delete logic
             if (type === 'mastery') {
