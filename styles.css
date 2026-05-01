@@ -1677,3 +1677,76 @@ input[type=range]::-webkit-slider-runnable-track {
 
 /* ===== SORT FILTER ===== */
 #sort-filter { min-width: 175px; }
+
+/* ===== PROGRESS RINGS ===== */
+.progress-ring-container {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.progress-ring { transform: rotate(-90deg); }
+.progress-ring-circle {
+    transition: stroke-dashoffset 0.35s;
+    transform-origin: 50% 50%;
+}
+.progress-ring-bg { stroke: rgba(255,255,255,0.05); }
+.progress-ring-val { 
+    font-size: 0.65rem; 
+    font-weight: 700; 
+    position: absolute; 
+    color: var(--text-muted); 
+}
+
+/* ===== MOBILE RESPONSIVE SIDEBAR ===== */
+.hamburger {
+    display: none;
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
+    z-index: 1002;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: white;
+    padding: 0.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+@media (max-width: 1024px) {
+    .hamburger { display: block; }
+    .sidebar {
+        position: fixed;
+        left: -280px;
+        top: 0;
+        bottom: 0;
+        z-index: 1001;
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 20px 0 50px rgba(0,0,0,0.5);
+    }
+    .sidebar.active { transform: translateX(280px); }
+    .main-content { margin-left: 0; padding-top: 4rem; }
+    .global-footer { left: 0; }
+    
+    /* Overlay when sidebar is open */
+    .sidebar-overlay {
+        display: none;
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.7);
+        backdrop-filter: blur(4px);
+        z-index: 1000;
+    }
+    .sidebar-overlay.active { display: block; }
+}
+
+@media (max-width: 640px) {
+    .dashboard-grid { grid-template-columns: 1fr; }
+    .header-content { flex-direction: column; align-items: flex-start; gap: 1rem; }
+    .filters { flex-direction: column; width: 100%; }
+    .filters > * { width: 100% !important; }
+    .stat-card { padding: 1.25rem; }
+}

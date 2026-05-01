@@ -678,16 +678,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const pct = total ? Math.round((completed / total) * 100) : 0;
 
         const overallProgEl = document.getElementById('overall-progress');
-        if (overallProgEl) overallProgEl.textContent = `${pct}%`;
+        const watchedCountEl = document.getElementById('watched-count');
+        
+        if (overallProgEl) overallProgEl.style.width = `${pct}%`;
+        if (watchedCountEl) watchedCountEl.textContent = `${completed} / ${total} Watched`;
         
         const progFillEl = document.getElementById('progress-fill');
         if (progFillEl) progFillEl.style.width = `${pct}%`;
-
-        const watchedCountEl = document.getElementById('watched-count');
-        if (watchedCountEl) watchedCountEl.textContent = `${completed} / ${total} Watched`;
-
-        const inProgressEl = document.getElementById('in-progress-count');
-        if (inProgressEl) inProgressEl.textContent = inProgress;
 
         // Active Webinar Display
         const activeWebinarTitleEl = document.getElementById('active-webinar-title');
@@ -1087,61 +1084,67 @@ document.addEventListener('DOMContentLoaded', () => {
             const card = document.createElement('div');
             card.className = `module-card ${isCollapsed ? 'collapsed' : ''}`;
             
-            let modCompleted = 0;
-            const lessonsHtml = mod.lessons.map(lesson => {
-                const prog = masteryProgress[lesson.id] || { status: 'Not Started' };
-                const isDone = prog === true || prog.status === 'Completed';
-                const isInProgress = prog.status === 'In Progress';
-                
-                if (isDone) modCompleted++;
+            const total = mod.lessons.length;
+            const completed = mod.lessons.filter(l => masteryProgress[l.id]?.status === 'Completed').length;
+            const pct = total ? Math.round((completed / total) * 100) : 0;
 
-                let statusClass = '';
-                if (isDone) statusClass = 'completed';
-                else if (isInProgress) statusClass = 'in-progress';
-
-                let icon = '';
-                if (isDone) icon = '<svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 20 20" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>';
-                else if (isInProgress) icon = '<div style="width:8px; height:8px; background:var(--primary); border-radius:50%"></div>';
-
-                let notesHtml = '';
-                if (prog.notes) {
-                    notesHtml = `
-                        <div class="lesson-notes-wrapper" style="width:100%">
-                            <div class="lesson-notes-preview">${prog.notes}</div>
-                            <button class="notes-toggle-btn" onclick="toggleNoteExpansion(this, event)">Read More</button>
-                        </div>
-                    `;
-                }
-
-                return `
-                    <div class="lesson-item ${statusClass}" onclick="openEditModal('${lesson.id}', 'mastery')">
-                        <div style="display:flex; flex-direction:column; width:100%;">
-                            <div style="display:flex; align-items:center; gap:0.6rem; width:100%;">
-                                <div class="lesson-check">
-                                    ${icon}
-                                </div>
-                                <span style="flex:1">${lesson.name}</span>
-                                <a href="${lesson.link}" target="_blank" class="lesson-link" onclick="event.stopPropagation()">
-                                    <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" height="1.2em" width="1.2em" xmlns="http://www.w3.org/2000/svg"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
-                                </a>
-                            </div>
-                            <div class="tag-container">${(prog.tags || []).map(t => `<span class="tag-badge">#${t}</span>`).join('')}</div>
-                            ${notesHtml}
-                        </div>
-                    </div>
-                `;
-            }).join('');
+            // Progress Ring SVG
+            const radius = 16;
+            const circumference = 2 * Math.PI * radius;
+            const offset = circumference - (pct / 100) * circumference;
 
             card.innerHTML = `
                 <div class="module-card-header" onclick="toggleModule(${mod.module})">
+                    <div class="progress-ring-container">
+                        <svg class="progress-ring" width="40" height="40">
+                            <circle class="progress-ring-bg" stroke-width="3" fill="transparent" r="${radius}" cx="20" cy="20"/>
+                            <circle class="progress-ring-circle" stroke="var(--accent)" stroke-width="3" 
+                                    stroke-dasharray="${circumference} ${circumference}" 
+                                    stroke-dashoffset="${offset}" 
+                                    stroke-linecap="round" fill="transparent" r="${radius}" cx="20" cy="20"/>
+                        </svg>
+                        <span class="progress-ring-val">${pct}%</span>
+                    </div>
                     <div style="display:flex; flex-direction:column; gap:0.25rem;">
-                        <span class="module-progress-chip">${modCompleted}/${mod.lessons.length} Done</span>
+                        <span class="module-progress-chip">${completed}/${total} Done</span>
                         <h3>Module ${mod.module}: ${mod.title}</h3>
                     </div>
                     <svg class="collapse-chevron" stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" height="1.2em" width="1.2em" xmlns="http://www.w3.org/2000/svg"><polyline points="6 9 12 15 18 9"></polyline></svg>
                 </div>
                 <div class="lesson-list">
-                    ${lessonsHtml}
+                    ${mod.lessons.map(lesson => {
+                        const prog = masteryProgress[lesson.id] || { status: 'Not Started' };
+                        const isDone = prog === true || prog.status === 'Completed';
+                        const isInProgress = prog.status === 'In Progress';
+                        const statusClass = isDone ? 'completed' : (isInProgress ? 'in-progress' : '');
+                        let icon = isDone ? '<svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 20 20" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>' : (isInProgress ? '<div style="width:8px; height:8px; background:var(--primary); border-radius:50%"></div>' : '');
+                        
+                        let notesHtml = '';
+                        if (prog.notes) {
+                            notesHtml = `
+                                <div class="lesson-notes-wrapper" style="width:100%">
+                                    <div class="lesson-notes-preview">${prog.notes}</div>
+                                    <button class="notes-toggle-btn" onclick="toggleNoteExpansion(this, event)">Read More</button>
+                                </div>
+                            `;
+                        }
+
+                        return `
+                            <div class="lesson-item ${statusClass}" onclick="openEditModal('${lesson.id}', 'mastery')">
+                                <div style="display:flex; flex-direction:column; width:100%;">
+                                    <div style="display:flex; align-items:center; gap:0.6rem; width:100%;">
+                                        <div class="lesson-check">${icon}</div>
+                                        <span style="flex:1">${lesson.name}</span>
+                                        <a href="${lesson.link}" target="_blank" class="lesson-link" onclick="event.stopPropagation()">
+                                            <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" height="1.2em" width="1.2em" xmlns="http://www.w3.org/2000/svg"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                                        </a>
+                                    </div>
+                                    <div class="tag-container">${(prog.tags || []).map(t => `<span class="tag-badge">#${t}</span>`).join('')}</div>
+                                    ${notesHtml}
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
                 </div>
             `;
             grid.appendChild(card);
@@ -2136,6 +2139,57 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.handleAdminPush = handleAdminPush;
 
+
+    // 5. Smart Admin Labels
+    const adminCategorySelect = document.getElementById('admin-item-category');
+    if (adminCategorySelect) {
+        adminCategorySelect.addEventListener('change', (e) => {
+            const cat = e.target.value;
+            const nameLbl = document.getElementById('admin-label-name');
+            const groupLbl = document.getElementById('admin-label-group');
+            const nameInp = document.getElementById('admin-item-name');
+            const groupInp = document.getElementById('admin-item-group');
+
+            if (cat === 'webinar') {
+                nameLbl.textContent = 'Webinar Name';
+                groupLbl.textContent = 'Month Group';
+                nameInp.placeholder = 'e.g. Webinar 259';
+                groupInp.placeholder = 'e.g. June 2026';
+            } else if (cat === 'mastery') {
+                nameLbl.textContent = 'Lesson Name';
+                groupLbl.textContent = 'Module Number';
+                nameInp.placeholder = 'e.g. Psychology of Trading';
+                groupInp.placeholder = 'e.g. 5';
+            } else {
+                nameLbl.textContent = 'Application Name';
+                groupLbl.textContent = 'Category';
+                nameInp.placeholder = 'e.g. Psychology Notion';
+                groupInp.placeholder = 'e.g. Psychology';
+            }
+        });
+    }
+
+    // 6. Mobile Sidebar Toggle
+    const hamburgerBtn = document.getElementById('hamburger-btn');
+    const sidebar = document.querySelector('.sidebar');
+    const overlay = document.getElementById('sidebar-overlay');
+
+    if (hamburgerBtn && sidebar && overlay) {
+        const toggleSidebar = () => {
+            sidebar.classList.toggle('active');
+            overlay.classList.toggle('active');
+        };
+
+        hamburgerBtn.addEventListener('click', toggleSidebar);
+        overlay.addEventListener('click', toggleSidebar);
+
+        // Close when clicking nav links on mobile
+        document.querySelectorAll('.nav-links li').forEach(li => {
+            li.addEventListener('click', () => {
+                if (window.innerWidth <= 1024) toggleSidebar();
+            });
+        });
+    }
 
     updateClock();
     setInterval(updateClock, 1000);
