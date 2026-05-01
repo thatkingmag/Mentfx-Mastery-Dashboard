@@ -95,6 +95,38 @@
                     </div>
                 </header>
 
+                <!-- Streak Banner -->
+                <div class="streak-banner">
+                    <div class="streak-card glass">
+                        <span class="streak-fire">🔥</span>
+                        <div class="streak-stats">
+                            <div class="streak-stat">
+                                <span class="streak-num" id="streak-current">0</span>
+                                <span class="streak-lbl">Day Streak</span>
+                            </div>
+                            <div class="streak-sep"></div>
+                            <div class="streak-stat">
+                                <span class="streak-num" id="streak-best">0</span>
+                                <span class="streak-lbl">Best Streak</span>
+                            </div>
+                            <div class="streak-sep"></div>
+                            <div class="streak-stat">
+                                <span class="streak-num" id="streak-days">0</span>
+                                <span class="streak-lbl">Study Days</span>
+                            </div>
+                        </div>
+                        <span class="streak-msg" id="streak-msg">Start studying to build your streak!</span>
+                    </div>
+                </div>
+
+                <!-- Next Up -->
+                <div style="padding: 0 1.5rem; margin-bottom: 1rem;">
+                    <h2 style="font-size: 1.1rem; color: var(--accent); opacity: 0.9; margin-bottom: 1rem;">🎯 Next Up</h2>
+                </div>
+                <div class="next-up-grid" id="next-up-grid">
+                    <!-- injected by JS -->
+                </div>
+
                 <div style="padding: 0 1.5rem; margin-bottom: 1rem;">
                     <h2 style="font-size: 1.1rem; color: var(--accent); opacity: 0.9; margin-bottom: 0.5rem;">Mastery Course Overview</h2>
                 </div>
@@ -239,6 +271,15 @@
                             <option value="Not Started">Not Started</option>
                             <option value="In Progress">In Progress</option>
                             <option value="Completed">Completed</option>
+                        </select>
+                        <select id="sort-filter" class="glass-input">
+                            <option value="default">↑ Oldest → Latest</option>
+                            <option value="newest">↓ Latest → Oldest</option>
+                            <option value="rating-high">★ Highest Rating</option>
+                            <option value="rating-low">★ Lowest Rating</option>
+                            <option value="status-progress">● In Progress First</option>
+                            <option value="status-done">✓ Completed First</option>
+                            <option value="name-az">A → Z Name</option>
                         </select>
                         <input type="text" id="search-filter" class="glass-input" placeholder="Search webinars...">
                     </div>
@@ -535,11 +576,9 @@
         </div>
     </div>
 
-    <div id="save-toast" class="toast-notification">
-        <svg stroke="currentColor" fill="none" stroke-width="3" viewBox="0 0 24 24" height="1.2em" width="1.2em" xmlns="http://www.w3.org/2000/svg"><polyline points="20 6 9 17 4 12"></polyline></svg>
-        <span>Changes Saved</span>
-    </div>
+    <!-- Toast container -->
+    <div id="toast-container" class="toast-container"></div>
 
-    <script src="app.js?v=3"></script>
+    <script src="app.js?v=5"></script>
 </body>
 </html>

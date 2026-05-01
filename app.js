@@ -1,5 +1,32 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // 0. Register Chart.js Plugin for Center Text
+    // 0.1 Toast System
+    function showToast(message, type = 'info') {
+        const container = document.getElementById('toast-container');
+        if (!container) return;
+
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+        
+        let icon = '🔔';
+        if (type === 'success') icon = '✅';
+        if (type === 'error') icon = '❌';
+
+        toast.innerHTML = `
+            <span class="toast-icon">${icon}</span>
+            <span class="toast-message">${message}</span>
+        `;
+
+        container.appendChild(toast);
+        
+        // Trigger animation
+        setTimeout(() => toast.classList.add('toast-visible'), 10);
+
+        // Remove after delay
+        setTimeout(() => {
+            toast.classList.remove('toast-visible');
+            setTimeout(() => toast.remove(), 400);
+        }, 3500);
+    }
     try {
         if (typeof Chart !== 'undefined') {
             Chart.register({
@@ -237,22 +264,38 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderTable() {
         const term = searchFilter.value.toLowerCase();
         const stat = statusFilter.value;
+        const sortBy = document.getElementById('sort-filter')?.value || 'default';
         trackerBody.innerHTML = '';
         
-        appData.forEach((wb, index) => {
+        let filtered = appData.filter(wb => {
             const matchInTags = (wb.tags || []).some(t => t.toLowerCase().includes(term));
-            if (stat !== 'All' && wb.status !== stat) return;
-            if (term && !wb.name.toLowerCase().includes(term) && (!wb.notes || !wb.notes.toLowerCase().includes(term)) && !matchInTags) return;
+            if (stat !== 'All' && wb.status !== stat) return false;
+            if (term && !wb.name.toLowerCase().includes(term) && (!wb.notes || !wb.notes.toLowerCase().includes(term)) && !matchInTags) return false;
+            return true;
+        });
 
+        // Apply Sorting
+        filtered = getSortedData(filtered, sortBy);
+
+        filtered.forEach((wb, index) => {
             const row = document.createElement('tr');
             let statusClass = 'status-not-started';
             if (wb.status === 'In Progress') statusClass = 'status-in-progress';
             if (wb.status === 'Completed') statusClass = 'status-completed';
 
-            let linkHtml = wb.link ? `<a href="${wb.link}" target="_blank" class="link-btn">Watch</a>` : '<span style="color:#64748b">No Link</span>';
+            let linkHtml = wb.link ? `<a href="${wb.link}" target="_blank" class="link-btn" onclick="logActivity('${wb.id}', 'webinar', 'view')">Watch</a>` : '<span style="color:#64748b">No Link</span>';
             let tagsHtml = (wb.tags || []).map(t => `<span class="tag-badge">#${t}</span>`).join('');
 
+            const isDone = wb.status === 'Completed';
+
             row.innerHTML = `
+                <td>
+                    <button class="btn-quick-done ${isDone ? 'done' : ''}" 
+                            title="${isDone ? 'Mark as Not Started' : 'Quick Complete'}"
+                            onclick="toggleItemComplete('${wb.id}', 'webinar')">
+                        ${isDone ? '✓' : ''}
+                    </button>
+                </td>
                 <td style="font-weight: 500;">
                     <div>${wb.name}</div>
                     <div class="tag-container">${tagsHtml}</div>
@@ -267,17 +310,44 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    function getSortedData(data, sortBy) {
+        const sorted = [...data];
+        switch (sortBy) {
+            case 'newest':
+                return sorted.reverse(); // data.js is already chronologically ascending
+            case 'rating-high':
+                return sorted.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+            case 'rating-low':
+                return sorted.sort((a, b) => (a.rating || 0) - (b.rating || 0));
+            case 'status-progress':
+                const order = { 'In Progress': 0, 'Not Started': 1, 'Completed': 2 };
+                return sorted.sort((a, b) => order[a.status] - order[b.status]);
+            case 'status-done':
+                return sorted.sort((a, b) => (b.status === 'Completed' ? 1 : 0) - (a.status === 'Completed' ? 1 : 0));
+            case 'name-az':
+                return sorted.sort((a, b) => a.name.localeCompare(b.name));
+            default:
+                return sorted; // Oldest to newest
+        }
+    }
+
     function renderGrid() {
         const container = document.getElementById('grid-container');
         const term = searchFilter.value.toLowerCase();
         const stat = statusFilter.value;
+        const sortBy = document.getElementById('sort-filter')?.value || 'default';
         container.innerHTML = '';
 
-        appData.forEach((wb, index) => {
+        let filtered = appData.filter(wb => {
             const matchInTags = (wb.tags || []).some(t => t.toLowerCase().includes(term));
-            if (stat !== 'All' && wb.status !== stat) return;
-            if (term && !wb.name.toLowerCase().includes(term) && (!wb.notes || !wb.notes.toLowerCase().includes(term)) && !matchInTags) return;
+            if (stat !== 'All' && wb.status !== stat) return false;
+            if (term && !wb.name.toLowerCase().includes(term) && (!wb.notes || !wb.notes.toLowerCase().includes(term)) && !matchInTags) return false;
+            return true;
+        });
 
+        filtered = getSortedData(filtered, sortBy);
+
+        filtered.forEach((wb, index) => {
             const card = document.createElement('div');
             card.className = 'webinar-card glass';
 
@@ -285,7 +355,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (wb.status === 'In Progress') statusClass = 'status-in-progress';
             if (wb.status === 'Completed') statusClass = 'status-completed';
 
-            let linkHtml = wb.link ? `<a href="${wb.link}" target="_blank" class="btn-action">Watch</a>` : '';
+            let linkHtml = wb.link ? `<a href="${wb.link}" target="_blank" class="btn-action" onclick="logActivity('${wb.id}', 'webinar', 'view')">Watch</a>` : '';
             let tagsHtml = (wb.tags || []).map(t => `<span class="tag-badge">#${t}</span>`).join('');
 
             let notesHtml = '';
@@ -293,8 +363,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 notesHtml = `<div class="lesson-notes-preview" style="margin-top:0.5rem; opacity:0.7">${wb.notes}</div>`;
             }
 
+            const isDone = wb.status === 'Completed';
+
             card.innerHTML = `
                 <div class="card-header">
+                    <button class="btn-quick-done ${isDone ? 'done' : ''}" 
+                            title="${isDone ? 'Mark as Not Started' : 'Quick Complete'}"
+                            onclick="toggleItemComplete('${wb.id}', 'webinar')">
+                        ${isDone ? '✓' : ''}
+                    </button>
                     <span class="card-month">${wb.monthGroup}</span>
                     <span class="status-badge ${statusClass}">${wb.status}</span>
                 </div>
@@ -394,14 +471,14 @@ document.addEventListener('DOMContentLoaded', () => {
             if (type === 'webinar') {
                 editingIndex = appData.findIndex(w => w.id === id);
                 if (editingIndex === -1) {
-                    alert('Error: Could not find webinar id: ' + id);
+                    showToast('Error: Could not find webinar id: ' + id, 'error');
                     return;
                 }
                 dataObj = appData[editingIndex];
             } else if (type === 'application') {
                 editingIndex = appApplicationData.findIndex(a => a.id === id);
                 if (editingIndex === -1) {
-                    alert('Error: Could not find application item id: ' + id);
+                    showToast('Error: Could not find application item id: ' + id, 'error');
                     return;
                 }
                 dataObj = appApplicationData[editingIndex];
@@ -435,7 +512,7 @@ document.addEventListener('DOMContentLoaded', () => {
             modal.style.pointerEvents = 'all';
             modal.classList.add('active');
         } catch(e) {
-            alert('Critical Error in openEditModal: ' + e.message);
+            showToast('Critical Error in openEditModal: ' + e.message, 'error');
         }
     };
 
@@ -569,10 +646,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (data.mentfxProfile) localStorage.setItem('mentfxProfile', JSON.stringify(data.mentfxProfile));
                 if (data.mentfxApplication) localStorage.setItem('mentfxApplication', JSON.stringify(data.mentfxApplication));
 
-                alert('Import successful! The page will now reload.');
-                window.location.reload();
+                showToast('Import successful! Reloading...', 'success');
+                setTimeout(() => window.location.reload(), 1500);
             } catch (err) {
-                alert('Error importing data: ' + err.message);
+                showToast('Error importing data: ' + err.message, 'error');
             }
         };
         reader.readAsText(file);
@@ -868,9 +945,11 @@ document.addEventListener('DOMContentLoaded', () => {
         // Group by date and calculate average rating
         const trendData = {};
         activityLog.forEach(log => {
-            if (!trendData[log.date]) trendData[log.date] = { sum: 0, count: 0 };
-            trendData[log.date].sum += log.rating || 0;
-            trendData[log.date].count++;
+            if (typeof log.rating === 'number') {
+                if (!trendData[log.date]) trendData[log.date] = { sum: 0, count: 0 };
+                trendData[log.date].sum += log.rating;
+                trendData[log.date].count++;
+            }
         });
 
         const sortedDates = Object.keys(trendData).sort();
@@ -1397,6 +1476,9 @@ document.addEventListener('DOMContentLoaded', () => {
     window.updateDashboard = updateDashboard;
     window.renderHeatmap = renderHeatmap;
     window.renderComprehensionTrends = renderComprehensionTrends;
+    window.logActivity = logActivity;
+    window.showToast = showToast;
+    window.toggleItemComplete = toggleItemComplete;
 
     // Admin view — defined here early so onclick="showAdminView()" always resolves,
     // even if later code throws. The full body is also set at line ~1465.
@@ -1468,10 +1550,146 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             if (!resp.ok) throw new Error('Save failed');
             console.log("Local Server sync: Data saved successfully");
+            showToast('Progress synced to local server', 'success');
         } catch (e) {
             console.error("Local Server sync save failed:", e);
         }
     }
+
+    // High Impact Helper Functions
+    function updateStreak() {
+        if (!activityLog || activityLog.length === 0) return;
+
+        // Get unique dates from activityLog
+        const dates = [...new Set(activityLog.map(log => log.date.split('T')[0]))].sort().reverse();
+        if (dates.length === 0) return;
+
+        let currentStreak = 0;
+        let bestStreak = 0;
+        let tempStreak = 0;
+
+        const today = new Date().toISOString().split('T')[0];
+        const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+
+        // Check if current streak is alive
+        if (dates[0] === today || dates[0] === yesterday) {
+            currentStreak = 1;
+            for (let i = 0; i < dates.length - 1; i++) {
+                const d1 = new Date(dates[i]);
+                const d2 = new Date(dates[i+1]);
+                const diff = (d1 - d2) / (1000 * 60 * 60 * 24);
+                if (diff === 1) {
+                    currentStreak++;
+                } else {
+                    break;
+                }
+            }
+        }
+
+        // Calculate best streak
+        tempStreak = 1;
+        for (let i = 0; i < dates.length - 1; i++) {
+            const d1 = new Date(dates[i]);
+            const d2 = new Date(dates[i+1]);
+            const diff = (d1 - d2) / (1000 * 60 * 60 * 24);
+            if (diff === 1) {
+                tempStreak++;
+            } else {
+                if (tempStreak > bestStreak) bestStreak = tempStreak;
+                tempStreak = 1;
+            }
+        }
+        if (tempStreak > bestStreak) bestStreak = tempStreak;
+
+        // Update UI
+        document.getElementById('streak-current').textContent = currentStreak;
+        document.getElementById('streak-best').textContent = bestStreak;
+        document.getElementById('streak-days').textContent = dates.length;
+
+        const streakMsg = document.getElementById('streak-msg');
+        if (currentStreak > 0) {
+            streakMsg.textContent = currentStreak > 2 ? `You're on fire! Keep it up! 🔥` : `Great start! Keep going! 🚀`;
+            document.querySelector('.streak-fire').style.opacity = '1';
+        } else {
+            streakMsg.textContent = `Start studying to build your streak!`;
+            document.getElementById('streak-current').classList.add('cold');
+        }
+    }
+
+    function renderNextUp() {
+        const nextUpGrid = document.getElementById('next-up-grid');
+        if (!nextUpGrid) return;
+        nextUpGrid.innerHTML = '';
+
+        // 1. Next Webinar
+        const nextWebinar = appData.find(w => w.status === 'Not Started' || w.status === 'In Progress');
+        
+        // 2. Next Mastery Lesson
+        let nextMastery = null;
+        if (typeof masteryData !== 'undefined') {
+            for (const mod of masteryData) {
+                const unstarted = mod.lessons.find(l => {
+                    const prog = masteryProgress[l.id];
+                    return !prog || prog.status !== 'Completed';
+                });
+                if (unstarted) {
+                    nextMastery = unstarted;
+                    nextMastery.moduleTitle = mod.title;
+                    break;
+                }
+            }
+        }
+
+        const items = [];
+        if (nextWebinar) items.push({ ...nextWebinar, type: 'Webinar', sub: nextWebinar.monthGroup });
+        if (nextMastery) items.push({ ...nextMastery, type: 'Mastery', sub: nextMastery.moduleTitle });
+
+        items.forEach(item => {
+            const card = document.createElement('div');
+            card.className = 'next-up-card glass';
+            card.onclick = () => {
+                if (item.type === 'Webinar') {
+                    showTab('tracker');
+                    searchFilter.value = item.name;
+                    renderCurrentView();
+                } else {
+                    showTab('mastery');
+                    // Scroll to lesson?
+                }
+            };
+
+            card.innerHTML = `
+                <div class="next-up-type">${item.type}</div>
+                <div class="next-up-title">${item.name}</div>
+                <div class="next-up-sub">${item.sub}</div>
+                <div class="next-up-cta">Continue Watching →</div>
+            `;
+            nextUpGrid.appendChild(card);
+        });
+    }
+
+    window.toggleItemComplete = (id, category) => {
+        if (category === 'webinar') {
+            const item = appData.find(w => w.id === id);
+            if (!item) return;
+            const newStatus = item.status === 'Completed' ? 'Not Started' : 'Completed';
+            item.status = newStatus;
+            
+            if (newStatus === 'Completed') {
+                logActivity(id, 'webinar', 'complete');
+                showToast(`Webinar completed! 🎯`, 'success');
+            } else {
+                showToast(`Webinar status reset`, 'info');
+            }
+
+            localStorage.setItem('mentfxData', JSON.stringify(appData));
+            saveToServer();
+            renderCurrentView();
+            updateDashboard();
+            updateStreak();
+            renderNextUp();
+        }
+    };
 
     // Admin Logic
     window.showAdminView = () => {
@@ -1522,7 +1740,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const remember = document.getElementById('admin-remember-token').checked;
 
         if (!name || !link || !group || !token) {
-            alert('Please fill in all fields and provide your GitHub token.');
+            showToast('Please fill in all fields and provide your GitHub token.', 'error');
             return;
         }
 
@@ -1659,12 +1877,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            alert(`Successfully synced ${name}! Local dashboard and ${filePath} updated.`);
+            showToast(`Successfully synced ${name}!`, 'success');
             resetAdminForm();
             
         } catch (err) {
             console.error(err);
-            alert('Error: ' + err.message);
+            showToast('Sync Error: ' + err.message, 'error');
         } finally {
             btn.disabled = false;
             btn.innerHTML = originalText;
@@ -1802,7 +2020,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const repo = document.getElementById('admin-repo-name').value.trim();
         
         if (!token) {
-            alert('Please provide your GitHub token in Settings to delete from the cloud.');
+            showToast('Please provide your GitHub token in Settings to delete from the cloud.', 'error');
             return;
         }
 
@@ -1901,7 +2119,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 saveToServer();
             }
 
-            alert(`Successfully deleted ${id}! Local files and GitHub updated.`);
+            showToast(`Successfully deleted ${id}!`, 'success');
             renderAdminManageList();
             updateDashboard();
             renderCurrentView();
@@ -1910,7 +2128,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         } catch (err) {
             console.error(err);
-            alert('Error deleting item: ' + err.message);
+            showToast('Error deleting item: ' + err.message, 'error');
         }
     };
 
@@ -1921,6 +2139,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     updateClock();
     setInterval(updateClock, 1000);
+
+    // Initializations for new features
+    updateStreak();
+    renderNextUp();
+
+    const sortFilter = document.getElementById('sort-filter');
+    if (sortFilter) {
+        sortFilter.addEventListener('change', () => {
+            renderCurrentView();
+        });
+    }
 
     // Tag Click Filtering Logic
     document.addEventListener('click', (e) => {
