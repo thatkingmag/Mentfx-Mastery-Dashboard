@@ -1889,6 +1889,11 @@ document.addEventListener('DOMContentLoaded', () => {
             item.status = newStatus;
             
             if (newStatus === 'Completed') {
+                if (event && event.target) {
+                    const el = event.target.closest('.webinar-card') || event.target.closest('tr') || event.target;
+                    el.classList.add('status-completed-pulse');
+                    setTimeout(() => el.classList.remove('status-completed-pulse'), 1000);
+                }
                 logActivity(id, 'webinar', 'complete');
                 showToast(`Webinar completed! 🎯`, 'success');
             } else {
@@ -1918,6 +1923,11 @@ document.addEventListener('DOMContentLoaded', () => {
             masteryProgress[id] = { ...prog, status: newStatus };
             
             if (newStatus === 'Completed') {
+                if (event && event.target) {
+                    const el = event.target.closest('.mastery-module-card') || event.target;
+                    el.classList.add('status-completed-pulse');
+                    setTimeout(() => el.classList.remove('status-completed-pulse'), 1000);
+                }
                 logActivity(id, 'mastery', 'complete');
                 showToast(`Lesson completed! 🎯`, 'success');
             } else {
