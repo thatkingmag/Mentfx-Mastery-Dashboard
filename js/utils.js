@@ -52,9 +52,54 @@ window.MentfxUtils = {
             if (emptyDiv) emptyDiv.remove();
             container.style.display = 'block';
         }
+    },
+
+    exportProgress: function() {
+        const data = {
+            masteryProgress: window.MentfxState.masteryProgress,
+            appData: window.MentfxState.appData,
+            appApplicationData: window.MentfxState.appApplicationData,
+            activityLog: window.MentfxState.activityLog,
+            userProfile: window.MentfxState.userProfile
+        };
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `mentfx_backup_${new Date().toISOString().slice(0,10)}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        window.MentfxUtils.showToast('Data exported successfully!', 'success');
+    },
+
+    importProgress: function(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const data = JSON.parse(e.target.result);
+                if (data.masteryProgress) window.MentfxState.masteryProgress = data.masteryProgress;
+                if (data.appData) window.MentfxState.appData = data.appData;
+                if (data.appApplicationData) window.MentfxState.appApplicationData = data.appApplicationData;
+                if (data.activityLog) window.MentfxState.activityLog = data.activityLog;
+                if (data.userProfile) window.MentfxState.userProfile = data.userProfile;
+                
+                window.MentfxState.saveLocalData();
+                window.MentfxUtils.showToast('Data imported successfully!', 'success');
+                setTimeout(() => location.reload(), 1500);
+            } catch (err) {
+                window.MentfxUtils.showToast('Invalid backup file', 'error');
+            }
+        };
+        reader.readAsText(file);
     }
 };
 
 // Map to global for compatibility
 window.showToast = window.MentfxUtils.showToast;
 window.handleEmptyState = window.MentfxUtils.handleEmptyState;
+window.exportProgress = window.MentfxUtils.exportProgress;
+window.importProgress = window.MentfxUtils.importProgress;
+
