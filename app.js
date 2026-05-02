@@ -193,6 +193,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let chartInstance = null;
     let pieChartInstance = null;
     let sidebarPieChartInstance = null;
+    let isBulkEditMode = false;
+    let selectedItems = new Set();
 
 
     // ---- Event Listeners (Moved to top for robustness) ----
@@ -329,8 +331,14 @@ document.addEventListener('DOMContentLoaded', () => {
             let tagsHtml = (wb.tags || []).map(t => `<span class="tag-badge">#${t}</span>`).join('');
 
             const isDone = wb.status === 'Completed';
+            const isSelected = selectedItems.has(wb.id);
 
             row.innerHTML = `
+                <td class="bulk-col">
+                    <input type="checkbox" class="bulk-check" data-id="${wb.id}" 
+                           ${isSelected ? 'checked' : ''} 
+                           onclick="toggleSelectItem('${wb.id}')">
+                </td>
                 <td>
                     <button class="btn-quick-done ${isDone ? 'done' : ''}" 
                             title="${isDone ? 'Mark as Not Started' : 'Quick Complete'}"
@@ -985,18 +993,44 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function handleEmptyState(containerId, hasData, icon, message) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        
+        // Find or create the empty state div
+        let emptyDiv = container.parentElement.querySelector('.empty-state-container');
+        
+        if (!hasData) {
+            if (!emptyDiv) {
+                emptyDiv = document.createElement('div');
+                emptyDiv.className = 'empty-state-container';
+                container.parentElement.appendChild(emptyDiv);
+            }
+            emptyDiv.innerHTML = `<span class="empty-state-icon">${icon}</span><p>${message}</p>`;
+            container.style.display = 'none';
+        } else {
+            if (emptyDiv) emptyDiv.remove();
+            container.style.display = 'block';
+        }
+    }
+
     function renderComprehensionTrends() {
-        const ctx = document.getElementById('trendChart');
-        if (!ctx) return;
+        const canvas = document.getElementById('trendChart');
+        if (!canvas) return;
 
         // Group by date and calculate average rating
         const trendData = {};
-        activityLog.forEach(log => {
-            if (typeof log.rating === 'number') {
-                if (!trendData[log.date]) trendData[log.date] = { sum: 0, count: 0 };
-                trendData[log.date].sum += log.rating;
-                trendData[log.date].count++;
-            }
+        const ratedLogs = activityLog.filter(log => typeof log.rating === 'number' && log.rating > 0);
+        
+        handleEmptyState('trendChart', ratedLogs.length > 0, '📊', 'No comprehension data yet. Start rating your webinars to see your progress!');
+        
+        if (ratedLogs.length === 0) return;
+
+        ratedLogs.forEach(log => {
+            const date = log.date.split('T')[0];
+            if (!trendData[date]) trendData[date] = { sum: 0, count: 0 };
+            trendData[date].sum += log.rating;
+            trendData[date].count++;
         });
 
         const sortedDates = Object.keys(trendData).sort();
@@ -1010,7 +1044,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             if (typeof Chart === 'undefined') return;
-            trendChart = new Chart(ctx, {
+            trendChart = new Chart(canvas, {
                 type: 'line',
                 data: {
                     labels: labels.length ? labels : ['No Data'],
@@ -1574,6 +1608,94 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // Server sync implementations
+    // --- Bulk Edit System ---
+    window.toggleBulkEdit = () => {
+        isBulkEditMode = !isBulkEditMode;
+        selectedItems.clear();
+        
+        const btn = document.getElementById('bulk-edit-btn');
+        const toolbar = document.getElementById('bulk-actions-toolbar');
+        
+        if (isBulkEditMode) {
+            btn.classList.add('active');
+            toolbar.classList.remove('hide');
+            document.body.classList.add('bulk-edit-mode');
+        } else {
+            btn.classList.remove('active');
+            toolbar.classList.add('hide');
+            document.body.classList.remove('bulk-edit-mode');
+        }
+        
+        updateSelectionCount();
+        renderCurrentView();
+    };
+
+    window.toggleSelectItem = (id) => {
+        if (selectedItems.has(id)) selectedItems.delete(id);
+        else selectedItems.add(id);
+        updateSelectionCount();
+    };
+
+    window.toggleSelectAll = (e) => {
+        const checked = e.target.checked;
+        const checkboxes = trackerBody.querySelectorAll('.bulk-check');
+        checkboxes.forEach(cb => {
+            cb.checked = checked;
+            const id = cb.dataset.id;
+            if (checked) selectedItems.add(id);
+            else selectedItems.delete(id);
+        });
+        updateSelectionCount();
+    };
+
+    function updateSelectionCount() {
+        const el = document.getElementById('selected-count');
+        if (el) el.textContent = selectedItems.size;
+        
+        const selectAll = document.getElementById('select-all-bulk');
+        if (selectAll) {
+            const checkboxes = trackerBody.querySelectorAll('.bulk-check');
+            if (checkboxes.length > 0) {
+                selectAll.checked = Array.from(checkboxes).every(cb => cb.checked);
+            }
+        }
+    }
+
+    window.bulkUpdateStatus = (newStatus) => {
+        if (selectedItems.size === 0) return;
+        
+        appData.forEach(wb => {
+            if (selectedItems.has(wb.id)) {
+                wb.status = newStatus;
+                if (newStatus === 'Completed' && wb.rating === 0) wb.rating = 3; // Default rating if none
+                logActivity(wb.id, 'webinar', newStatus === 'Completed' ? 'complete' : 'update');
+            }
+        });
+        
+        localStorage.setItem('mentfxData', JSON.stringify(appData));
+        showToast(`Updated ${selectedItems.size} items to ${newStatus}`, 'success');
+        
+        toggleBulkEdit();
+        updateDashboard();
+        renderCurrentView();
+        saveToServer();
+    };
+
+    window.bulkDelete = () => {
+        if (selectedItems.size === 0) return;
+        if (!confirm(`Are you sure you want to delete ${selectedItems.size} items?`)) return;
+        
+        appData = appData.filter(wb => !selectedItems.has(wb.id));
+        localStorage.setItem('mentfxData', JSON.stringify(appData));
+        
+        showToast(`Deleted ${selectedItems.size} items`, 'success');
+        
+        toggleBulkEdit();
+        updateDashboard();
+        renderCurrentView();
+        saveToServer();
+    };
+
     async function loadFromServer() {
         if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') return;
         

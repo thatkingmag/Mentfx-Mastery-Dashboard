@@ -295,8 +295,24 @@
                             <option value="name-az">A → Z Name</option>
                         </select>
                         <input type="text" id="search-filter" class="glass-input" placeholder="Search webinars...">
+                        <button class="btn-bulk-toggle" id="bulk-edit-btn" onclick="toggleBulkEdit()">
+                            <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" height="1.1em" width="1.1em" xmlns="http://www.w3.org/2000/svg"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+                            Bulk Edit
+                        </button>
                     </div>
                 </header>
+
+                <div id="bulk-actions-toolbar" class="bulk-toolbar glass hide">
+                    <div class="bulk-info">
+                        <span id="selected-count">0</span> items selected
+                    </div>
+                    <div class="bulk-btns">
+                        <button class="btn btn-primary btn-sm" onclick="bulkUpdateStatus('Completed')">Mark Completed</button>
+                        <button class="btn btn-secondary btn-sm" onclick="bulkUpdateStatus('In Progress')">Mark In Progress</button>
+                        <button class="btn btn-danger btn-sm" onclick="bulkDelete()">Delete Selected</button>
+                        <button class="btn-outline btn-sm" onclick="toggleBulkEdit()">Cancel</button>
+                    </div>
+                </div>
 
                 <div id="tracker-content-area">
                     <!-- Standard Table (List Mode) -->
@@ -305,6 +321,7 @@
                             <table id="tracker-table">
                                 <thead>
                                     <tr>
+                                        <th class="bulk-col"><input type="checkbox" id="select-all-bulk" onclick="toggleSelectAll(event)"></th>
                                         <th>Name</th>
                                         <th>Month Group</th>
                                         <th>Status</th>
