@@ -116,28 +116,112 @@ document.addEventListener('DOMContentLoaded', () => {
     // Expose core functions to window for onclick compatibility
     window.toggleItemComplete = (id, category, event) => {
         if (event) event.stopPropagation();
-        // Logic for toggling status and saving
         const S = window.MentfxState;
         let item;
+        
         if (category === 'webinar') item = S.appData.find(w => w.id === id);
+        else if (category === 'application') item = S.appApplicationData.find(a => a.id === id);
         else if (category === 'mastery') item = S.masteryProgress[id] || { status: 'Not Started' };
         
+        if (!item) return;
+
         const isDone = item.status === 'Completed';
         const newStatus = isDone ? 'Not Started' : 'Completed';
         
-        if (category === 'webinar') item.status = newStatus;
+        if (category === 'webinar' || category === 'application') item.status = newStatus;
         else S.masteryProgress[id] = { ...item, status: newStatus };
         
         S.saveLocalData();
+        UI.renderApplication();
         T.renderCurrentView();
         M.renderMastery();
         U.showToast(`${category.charAt(0).toUpperCase() + category.slice(1)} status updated`, 'success');
         window.updateDashboard?.();
     };
 
+    let currentEditId = null;
+    let currentEditType = null;
+
     window.openEditModal = (id, type) => {
-        // ... abbreviated modal logic ...
+        currentEditId = id;
+        currentEditType = type;
+        const S = window.MentfxState;
+        let item;
+        
+        if (type === 'webinar') item = S.appData.find(w => w.id === id);
+        else if (type === 'application') item = S.appApplicationData.find(a => a.id === id);
+        else if (type === 'mastery') item = S.masteryProgress[id] || { status: 'Not Started', understanding: 0, notes: '', tags: [] };
+        
+        if (!item) return;
+
+        document.getElementById('modal-title').textContent = `Update ${type.charAt(0).toUpperCase() + type.slice(1)}`;
+        document.getElementById('modal-status').value = item.status || 'Not Started';
+        document.getElementById('modal-understanding').value = item.understanding || 0;
+        document.getElementById('modal-understanding-val').textContent = item.understanding || 0;
+        document.getElementById('modal-notes').value = item.notes || '';
+        document.getElementById('modal-tags').value = (item.tags || []).join(', ');
+        
+        const modal = document.getElementById('edit-modal');
+        if (modal) {
+            modal.style.display = 'flex';
+            setTimeout(() => modal.classList.add('active'), 10);
+        }
     };
+
+    window.closeModal = () => {
+        const modal = document.getElementById('edit-modal');
+        if (modal) {
+            modal.classList.remove('active');
+            setTimeout(() => modal.style.display = 'none', 300);
+        }
+    };
+
+    window.saveChanges = () => {
+        const S = window.MentfxState;
+        const status = document.getElementById('modal-status').value;
+        const understanding = parseInt(document.getElementById('modal-understanding').value);
+        const notes = document.getElementById('modal-notes').value;
+        const tags = document.getElementById('modal-tags').value.split(',').map(t => t.trim()).filter(t => t);
+        
+        if (currentEditType === 'webinar') {
+            const item = S.appData.find(w => w.id === currentEditId);
+            if (item) {
+                item.status = status;
+                item.understanding = understanding;
+                item.notes = notes;
+                item.tags = tags;
+            }
+        } else if (currentEditType === 'application') {
+            const item = S.appApplicationData.find(a => a.id === currentEditId);
+            if (item) {
+                item.status = status;
+                item.understanding = understanding;
+                item.notes = notes;
+                item.tags = tags;
+            }
+        } else if (currentEditType === 'mastery') {
+            S.masteryProgress[currentEditId] = {
+                ...S.masteryProgress[currentEditId],
+                status,
+                understanding,
+                notes,
+                tags
+            };
+        }
+        
+        S.saveLocalData();
+        UI.renderApplication();
+        T.renderCurrentView();
+        M.renderMastery();
+        window.closeModal();
+        U.showToast('Changes saved successfully', 'success');
+        window.updateDashboard?.();
+    };
+
+    // Add understanding range listener
+    document.getElementById('modal-understanding')?.addEventListener('input', (e) => {
+        document.getElementById('modal-understanding-val').textContent = e.target.value;
+    });
 
     init();
 });

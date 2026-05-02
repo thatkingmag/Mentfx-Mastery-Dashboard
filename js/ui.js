@@ -23,7 +23,7 @@ window.MentfxUI = {
 
     renderApplication: function() {
         const S = window.MentfxState;
-        const container = document.getElementById('application-grid');
+        const container = document.getElementById('app-grid');
         if (!container) return;
         
         container.innerHTML = '';
