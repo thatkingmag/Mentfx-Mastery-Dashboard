@@ -15,10 +15,75 @@ window.MentfxUI = {
             document.querySelector('.main-content').scrollTop = 0;
         }
 
-        // Trigger specific renders
         if (targetId === 'tracker') window.MentfxTracker?.renderCurrentView();
         if (targetId === 'dashboard') window.updateDashboard?.();
         if (targetId === 'mastery') window.MentfxMastery?.renderMastery();
+        if (targetId === 'application') this.renderApplication();
+    },
+
+    renderApplication: function() {
+        const S = window.MentfxState;
+        const container = document.getElementById('application-grid');
+        if (!container) return;
+        
+        container.innerHTML = '';
+        S.appApplicationData.forEach(item => {
+            const card = document.createElement('div');
+            card.className = 'webinar-card glass';
+            const isDone = item.status === 'Completed';
+            
+            card.innerHTML = `
+                <div class="card-header">
+                    <span class="card-month">${item.category || 'General'}</span>
+                    <span class="status-badge status-${item.status.toLowerCase().replace(' ', '-')}">${item.status}</span>
+                </div>
+                <div class="card-title">${item.name}</div>
+                <div class="card-footer">
+                    <button class="btn-quick-done ${isDone ? 'done' : ''}" onclick="toggleItemComplete('${item.id}', 'application', event)">${isDone ? '✓' : ''}</button>
+                    <button class="btn-action" onclick="openEditModal('${item.id}', 'application')">Edit</button>
+                </div>
+            `;
+            container.appendChild(card);
+        });
+    },
+
+    openProfileModal: function() {
+        const modal = document.getElementById('profile-modal');
+        if (modal) {
+            modal.style.display = 'flex';
+            document.getElementById('profile-name-input').value = window.MentfxState.userProfile.name;
+            document.getElementById('profile-motto-input').value = window.MentfxState.userProfile.motto;
+        }
+    },
+
+    closeProfileModal: function() {
+        const modal = document.getElementById('profile-modal');
+        if (modal) modal.style.display = 'none';
+    },
+
+    saveProfile: function() {
+        const name = document.getElementById('profile-name-input').value;
+        const motto = document.getElementById('profile-motto-input').value;
+        window.MentfxState.userProfile.name = name;
+        window.MentfxState.userProfile.motto = motto;
+        window.MentfxState.saveLocalData();
+        this.updateProfileUI();
+        this.closeProfileModal();
+        window.showToast('Profile updated!', 'success');
+    },
+
+    updateProfileUI: function() {
+        const profile = window.MentfxState.userProfile;
+        const initials = profile.name.split(' ').map(n => n[0]).join('').toUpperCase();
+        
+        const avatarEl = document.getElementById('display-avatar');
+        if (avatarEl) {
+            if (profile.avatarUrl) avatarEl.style.backgroundImage = `url(${profile.avatarUrl})`;
+            else avatarEl.textContent = initials;
+        }
+        
+        const nameEl = document.getElementById('display-name');
+        if (nameEl) nameEl.textContent = profile.name;
     },
 
     updateClock: function() {
