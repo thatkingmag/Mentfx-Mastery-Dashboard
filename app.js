@@ -1,4 +1,13 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // 0.0 PWA Service Worker Registration
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./sw.js')
+                .then(reg => console.log('Service Worker: Registered'))
+                .catch(err => console.log(`Service Worker: Error: ${err}`));
+        });
+    }
+
     // 0.1 Toast System
     function showToast(message, type = 'info') {
         const container = document.getElementById('toast-container');
