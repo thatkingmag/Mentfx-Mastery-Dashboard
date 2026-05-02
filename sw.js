@@ -10,4 +10,4 @@ self.addEventListener('activate', (e) => {
 self.addEventListener('fetch', (e) => {
   e.respondWith(fetch(e.request));
 });
-// Version 2.0
+// Version 2.2 - Force Refresh
