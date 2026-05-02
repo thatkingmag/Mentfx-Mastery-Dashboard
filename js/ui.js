@@ -55,7 +55,21 @@ window.MentfxUI = {
             modal.style.display = 'flex';
             modal.classList.add('active');
             document.getElementById('profile-name-input').value = window.MentfxState.userProfile.name;
-            document.getElementById('profile-motto-input').value = window.MentfxState.userProfile.motto;
+            document.getElementById('profile-motto-input').value = window.MentfxState.userProfile.motto || '';
+            
+            // Sync preview image on open
+            const preview = document.getElementById('profile-avatar-preview');
+            const profile = window.MentfxState.userProfile;
+            const initials = profile.name.split(' ').map(n => n[0]).join('').toUpperCase();
+            if (preview) {
+                if (profile.avatarUrl) {
+                    preview.style.backgroundImage = `url(${profile.avatarUrl})`;
+                    preview.textContent = '';
+                } else {
+                    preview.style.backgroundImage = 'none';
+                    preview.textContent = initials;
+                }
+            }
         }
     },
 
@@ -82,14 +96,43 @@ window.MentfxUI = {
         const profile = window.MentfxState.userProfile;
         const initials = profile.name.split(' ').map(n => n[0]).join('').toUpperCase();
         
-        const avatarEl = document.getElementById('display-avatar');
-        if (avatarEl) {
-            if (profile.avatarUrl) avatarEl.style.backgroundImage = `url(${profile.avatarUrl})`;
-            else avatarEl.textContent = initials;
-        }
+        const avatarElements = [
+            document.getElementById('display-avatar'),
+            document.getElementById('sidebar-avatar'),
+            document.getElementById('profile-avatar-preview')
+        ];
+        
+        avatarElements.forEach(el => {
+            if (el) {
+                if (profile.avatarUrl) {
+                    el.style.backgroundImage = `url(${profile.avatarUrl})`;
+                    el.style.backgroundSize = 'cover';
+                    el.style.backgroundPosition = 'center';
+                    el.textContent = '';
+                } else {
+                    el.style.backgroundImage = 'none';
+                    el.textContent = initials;
+                }
+            }
+        });
         
         const nameEl = document.getElementById('display-name');
         if (nameEl) nameEl.textContent = profile.name;
+        
+        const sidebarName = document.getElementById('sidebar-name');
+        if (sidebarName) sidebarName.textContent = profile.name;
+    },
+
+    handleProfilePicUpload: function(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            window.MentfxState.userProfile.avatarUrl = e.target.result;
+            window.MentfxUI.updateProfileUI(); // Immediately show preview
+        };
+        reader.readAsDataURL(file);
     },
 
     updateClock: function() {
@@ -127,3 +170,4 @@ window.openProfileModal = window.MentfxUI.openProfileModal;
 window.closeProfileModal = window.MentfxUI.closeProfileModal;
 window.saveProfile = window.MentfxUI.saveProfile;
 window.renderApplication = window.MentfxUI.renderApplication;
+window.handleProfilePicUpload = window.MentfxUI.handleProfilePicUpload;
