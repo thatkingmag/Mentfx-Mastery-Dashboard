@@ -34,11 +34,17 @@ window.MentfxUI = {
     },
 
     toggleSidebar: function() {
-        document.body.classList.toggle('sidebar-active');
+        const sidebar = document.querySelector('.sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
+        if (sidebar) sidebar.classList.toggle('active');
+        if (overlay) overlay.classList.toggle('active');
     },
 
     closeSidebar: function() {
-        document.body.classList.remove('sidebar-active');
+        const sidebar = document.querySelector('.sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
+        if (sidebar) sidebar.classList.remove('active');
+        if (overlay) overlay.classList.remove('active');
     }
 };
 
