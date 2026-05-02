@@ -323,7 +323,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td>
                     <button class="btn-quick-done ${isDone ? 'done' : ''}" 
                             title="${isDone ? 'Mark as Not Started' : 'Quick Complete'}"
-                            onclick="toggleItemComplete('${wb.id}', 'webinar')">
+                            onclick="toggleItemComplete('${wb.id}', 'webinar', event)">
                         ${isDone ? '✓' : ''}
                     </button>
                 </td>
@@ -400,7 +400,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="card-header">
                     <button class="btn-quick-done ${isDone ? 'done' : ''}" 
                             title="${isDone ? 'Mark as Not Started' : 'Quick Complete'}"
-                            onclick="toggleItemComplete('${wb.id}', 'webinar')">
+                            onclick="toggleItemComplete('${wb.id}', 'webinar', event)">
                         ${isDone ? '✓' : ''}
                     </button>
                     <span class="card-month">${wb.monthGroup}</span>
@@ -1060,6 +1060,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 ${notesHtml}
                 <div class="card-rating">Comprehension: ${item.rating || 0}/5</div>
                 <div class="card-footer">
+                    <button class="btn-quick-done ${isDone ? 'done' : ''}" 
+                            style="width:36px; height:36px;"
+                            title="${isDone ? 'Mark as Not Started' : 'Quick Complete'}"
+                            onclick="toggleItemComplete('${item.id}', 'application', event)">
+                        ${isDone ? '✓' : ''}
+                    </button>
                     ${linkHtml}
                     <button class="btn-action" style="flex:1" onclick="openEditModal('${item.id}', 'application')">Edit & Notes</button>
                 </div>
@@ -1164,7 +1170,12 @@ document.addEventListener('DOMContentLoaded', () => {
                             <div class="lesson-item ${statusClass}" onclick="openEditModal('${lesson.id}', 'mastery')">
                                 <div style="display:flex; flex-direction:column; width:100%;">
                                     <div style="display:flex; align-items:center; gap:0.6rem; width:100%;">
-                                        <div class="lesson-check">${icon}</div>
+                                        <button class="btn-quick-done ${isDone ? 'done' : ''}" 
+                                                style="width:24px; height:24px; font-size:0.7rem; border-width:1px;"
+                                                title="Quick Complete"
+                                                onclick="toggleItemComplete('${lesson.id}', 'mastery', event)">
+                                            ${isDone ? '✓' : ''}
+                                        </button>
                                         <span style="flex:1">${lesson.name}</span>
                                         <a href="${lesson.link}" target="_blank" class="lesson-link" onclick="event.stopPropagation()">
                                             <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" height="1.2em" width="1.2em" xmlns="http://www.w3.org/2000/svg"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
@@ -1234,9 +1245,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     tr.innerHTML = `
                         <td>
-                            <div class="lesson-status-badge ${isDone ? 'completed' : (isInProgress ? 'in-progress' : '')}">
-                                ${icon}
-                            </div>
+                            <button class="btn-quick-done ${isDone ? 'done' : ''}" 
+                                    style="width:28px; height:28px; font-size:0.75rem;"
+                                    title="Quick Complete"
+                                    onclick="toggleItemComplete('${lesson.id}', 'mastery', event)">
+                                ${isDone ? '✓' : ''}
+                            </button>
                         </td>
                         <td>
                             <div style="font-weight:500;">${lesson.name}</div>
@@ -1702,7 +1716,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function toggleItemComplete(id, category) {
+    function toggleItemComplete(id, category, event) {
+        if (event) event.stopPropagation(); // Prevent opening modal
+
         if (category === 'webinar') {
             const item = appData.find(w => w.id === id);
             if (!item) return;
@@ -1715,14 +1731,43 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 showToast(`Webinar status reset`, 'info');
             }
-
             localStorage.setItem('mentfxData', JSON.stringify(appData));
-            saveToServer();
             renderCurrentView();
-            updateDashboard();
-            updateStreak();
-            renderNextUp();
+        } else if (category === 'application') {
+            const item = appApplicationData.find(a => a.id === id);
+            if (!item) return;
+            const newStatus = item.status === 'Completed' ? 'Not Started' : 'Completed';
+            item.status = newStatus;
+            
+            if (newStatus === 'Completed') {
+                logActivity(id, 'application', 'complete');
+                showToast(`Application item completed! 🎯`, 'success');
+            } else {
+                showToast(`Status reset`, 'info');
+            }
+            localStorage.setItem('mentfxApplication', JSON.stringify(appApplicationData));
+            renderApplication();
+        } else if (category === 'mastery') {
+            const prog = masteryProgress[id] || { status: 'Not Started', rating: 0, notes: '', tags: [] };
+            const isDone = prog.status === 'Completed';
+            const newStatus = isDone ? 'Not Started' : 'Completed';
+            
+            masteryProgress[id] = { ...prog, status: newStatus };
+            
+            if (newStatus === 'Completed') {
+                logActivity(id, 'mastery', 'complete');
+                showToast(`Lesson completed! 🎯`, 'success');
+            } else {
+                showToast(`Lesson status reset`, 'info');
+            }
+            localStorage.setItem('mentfxMastery', JSON.stringify(masteryProgress));
+            renderMastery();
         }
+
+        saveToServer();
+        updateDashboard();
+        updateStreak();
+        if (typeof renderNextUp === 'function') renderNextUp();
     }
 
     // Admin Logic
