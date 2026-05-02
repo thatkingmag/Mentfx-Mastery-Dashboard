@@ -14,12 +14,24 @@ document.addEventListener('DOMContentLoaded', () => {
     function init() {
         // Load data from LocalStorage
         const savedWebinars = localStorage.getItem('mentfxData');
-        if (savedWebinars) S.appData = JSON.parse(savedWebinars);
-        else if (typeof window.webinarData !== 'undefined') S.appData = [...window.webinarData];
+        if (savedWebinars) {
+            S.appData = JSON.parse(savedWebinars);
+            if (S.appData.length === 0 && typeof window.webinarData !== 'undefined') {
+                S.appData = [...window.webinarData];
+            }
+        } else if (typeof window.webinarData !== 'undefined') {
+            S.appData = [...window.webinarData];
+        }
 
         const savedApp = localStorage.getItem('mentfxApplication');
-        if (savedApp) S.appApplicationData = JSON.parse(savedApp);
-        else if (typeof window.applicationData !== 'undefined') S.appApplicationData = [...window.applicationData];
+        if (savedApp) {
+            S.appApplicationData = JSON.parse(savedApp);
+            if (S.appApplicationData.length === 0 && typeof window.applicationData !== 'undefined') {
+                S.appApplicationData = [...window.applicationData];
+            }
+        } else if (typeof window.applicationData !== 'undefined') {
+            S.appApplicationData = [...window.applicationData];
+        }
 
         const savedMastery = localStorage.getItem('mentfxMastery');
         if (savedMastery) S.masteryProgress = JSON.parse(savedMastery);
