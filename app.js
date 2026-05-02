@@ -75,13 +75,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        // Mobile Sidebar Toggles
-        const hb = document.getElementById('hamburger-btn');
-        if (hb) hb.addEventListener('click', () => UI.toggleSidebar());
-
-        const overlay = document.getElementById('sidebar-overlay');
-        if (overlay) overlay.addEventListener('click', () => UI.closeSidebar());
-
         // Close sidebar on tab click (mobile)
         document.querySelectorAll('.nav-links li').forEach(li => {
             li.addEventListener('click', () => UI.closeSidebar());
@@ -136,3 +129,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
     init();
 });
+

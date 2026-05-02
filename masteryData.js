@@ -1,4 +1,4 @@
-const masteryData = [
+window.masteryData = [
     {
         "module": 0,
         "title": "The True Beginning",

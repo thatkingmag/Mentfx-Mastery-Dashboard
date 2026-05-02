@@ -1,4 +1,4 @@
-const applicationData = [
+window.applicationData = [
     {
         "id": "App 1",
         "name": "Application of Material 1",

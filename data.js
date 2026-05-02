@@ -1,4 +1,4 @@
-const webinarData = [
+window.webinarData = [
     {
         "id": "Webinar 1",
         "name": "Webinar 1",

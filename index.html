@@ -25,10 +25,10 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body class="dark-theme">
-    <button class="hamburger" id="hamburger-btn">
+    <button class="hamburger" id="hamburger-btn" onclick="window.toggleSidebar()">
         <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" height="24" width="24" xmlns="http://www.w3.org/2000/svg"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
     </button>
-    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+    <div class="sidebar-overlay" id="sidebar-overlay" onclick="window.closeSidebar()"></div>
     <div class="app-container">
         <!-- Sidebar Navigation -->
         <nav class="sidebar">
@@ -96,11 +96,21 @@
                     <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
                     <span>Application</span>
                 </li>
-                <li data-tab="admin">
+                <li data-tab="admin" onclick="showTab('admin')">
                     <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
                     <span>Admin</span>
                 </li>
             </ul>
+            
+            <div class="sidebar-profile" onclick="openProfileModal()">
+                <div class="user-profile">
+                    <div id="sidebar-avatar" class="user-avatar">TM</div>
+                    <div class="user-info">
+                        <span id="sidebar-name" class="user-name">Tshepo Moeletsi</span>
+                        <span class="user-motto">Above Dreams</span>
+                    </div>
+                </div>
+            </div>
         </nav>
 
         <!-- Main Content Area -->
@@ -543,17 +553,16 @@
                     </div>
                 </div>
             </section>
-
-        </main>
-    </div>
-    
-    <div class="global-footer glass" onclick="openProfileModal()" style="cursor:pointer" title="Edit Profile">
-        <div class="user-profile" style="border:none; background:transparent; padding:0; height:auto;">
-            <div id="display-avatar" class="user-avatar" style="width:24px; height:24px; font-size:0.7rem;">TM</div>
-            <span id="display-name" class="user-name" style="font-size:0.8rem; margin-right:1rem;">Tshepo Moeletsi</span>
+        
+        <div class="global-footer glass" onclick="openProfileModal()" style="cursor:pointer" title="Edit Profile">
+            <div class="user-profile" style="border:none; background:transparent; padding:0; height:auto;">
+                <div id="display-avatar" class="user-avatar" style="width:24px; height:24px; font-size:0.7rem;">TM</div>
+                <span id="display-name" class="user-name" style="font-size:0.8rem; margin-right:1rem;">Tshepo Moeletsi</span>
+            </div>
+            <div class="footer-sep" style="width:1px; height:15px; background:var(--border); margin: 0 0.5rem;"></div>
+            <span>Above Dreams &copy; 2026</span>
         </div>
-        <div class="footer-sep" style="width:1px; height:15px; background:var(--border); margin: 0 0.5rem;"></div>
-        <span>Above Dreams &copy; 2026</span>
+        </main>
     </div>
 
     <!-- Edit Modal -->
@@ -636,6 +645,7 @@
     <script src="js/tracker.js"></script>
     <script src="js/mastery.js"></script>
     <script src="js/admin.js"></script>
+    <script src="js/dashboard.js"></script>
     <script src="app.js"></script>
 </body>
 </html>

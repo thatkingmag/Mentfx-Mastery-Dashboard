@@ -48,9 +48,12 @@ window.MentfxUI = {
     },
 
     openProfileModal: function() {
+        if (window.closeSidebar) window.closeSidebar();
+        
         const modal = document.getElementById('profile-modal');
         if (modal) {
             modal.style.display = 'flex';
+            modal.classList.add('active');
             document.getElementById('profile-name-input').value = window.MentfxState.userProfile.name;
             document.getElementById('profile-motto-input').value = window.MentfxState.userProfile.motto;
         }
@@ -58,7 +61,10 @@ window.MentfxUI = {
 
     closeProfileModal: function() {
         const modal = document.getElementById('profile-modal');
-        if (modal) modal.style.display = 'none';
+        if (modal) {
+            modal.classList.remove('active');
+            setTimeout(() => modal.style.display = 'none', 300);
+        }
     },
 
     saveProfile: function() {

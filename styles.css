@@ -98,7 +98,58 @@ body {
 }
 
 .brand {
-    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.sidebar-profile {
+    margin-top: auto;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+    cursor: pointer;
+}
+
+.sidebar-profile .user-profile {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem;
+    border-radius: 12px;
+    transition: background 0.2s;
+}
+
+.sidebar-profile .user-profile:hover {
+    background: rgba(255,255,255,0.05);
+}
+
+.sidebar-profile .user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1rem;
+}
+
+.sidebar-profile .user-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar-profile .user-name {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--text-main);
+}
+
+.sidebar-profile .user-motto {
+    font-size: 0.75rem;
+    color: var(--text-muted);
 }
 
 .brand h2 {
@@ -378,9 +429,10 @@ header p {
 /* Heatmap */
 .heatmap-scroll-wrapper {
     width: 100%;
-    overflow-x: hidden; /* No more scrolling, we adjust columns in JS */
-    padding-bottom: 0.5rem;
+    overflow-x: auto; /* Enable horizontal scroll for heatmap */
+    padding-bottom: 1rem;
     margin-top: 1rem;
+    -webkit-overflow-scrolling: touch;
 }
 
 .heatmap-grid {
@@ -388,7 +440,7 @@ header p {
     grid-template-columns: repeat(53, 1fr);
     grid-template-rows: repeat(7, 1fr);
     gap: 4px;
-    min-width: 800px;
+    min-width: 700px; /* Force minimum width to enable scrolling */
 }
 
 .heatmap-box {
@@ -704,7 +756,7 @@ tbody tr:hover {
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.3s ease;
-    z-index: 100;
+    z-index: 10005;
 }
 
 .modal-overlay.active {
@@ -713,11 +765,12 @@ tbody tr:hover {
 }
 
 .modal-content {
-    width: 100%;
+    width: 95%;
     max-width: 500px;
     padding: 2.5rem;
     transform: translateY(20px);
     transition: transform 0.3s ease;
+    margin: auto;
 }
 
 .modal-overlay.active .modal-content {
@@ -1134,7 +1187,17 @@ input[type=range]::-webkit-slider-runnable-track {
 
 /* --- Mobile Responsiveness Overhaul --- */
 @media screen and (max-width: 1024px) {
-    .app-container { flex-direction: column; }
+    html, body {
+        overflow-x: hidden !important;
+        position: relative;
+        width: 100vw;
+    }
+
+    .app-container {
+        width: 100vw;
+        overflow-x: hidden;
+        flex-direction: column;
+    }
     
     .sidebar {
         position: fixed !important;
@@ -1213,7 +1276,23 @@ input[type=range]::-webkit-slider-runnable-track {
 
     .chart-card canvas {
         max-width: 100% !important;
-        touch-action: pan-y !important; /* Allow vertical scroll even when swiping on chart */
+        height: auto !important;
+        touch-action: pan-y !important;
+    }
+
+    .view header div {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 0.5rem !important;
+    }
+
+    .view header div p {
+        font-size: 0.9rem !important;
+        line-height: 1.4;
+    }
+
+    .view header div div[style*="width:1px"] {
+        display: none !important;
     }
 
     .analytics-row {
@@ -1236,6 +1315,11 @@ input[type=range]::-webkit-slider-runnable-track {
         border-radius: 12px;
         color: white;
         box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+        cursor: pointer;
+    }
+
+    .hamburger svg {
+        pointer-events: none;
     }
 
     .sidebar-overlay {
@@ -1311,12 +1395,15 @@ input[type=range]::-webkit-slider-runnable-track {
     .streak-sep { display: none !important; }
     .streak-stats { width: 100% !important; justify-content: space-between !important; }
     .streak-msg { margin-top: 0.5rem; text-align: center; width: 100%; }
-}
+
     .modal-content {
         padding: 1.5rem !important;
         margin: 10px;
         max-height: 90vh;
         overflow-y: auto;
+        width: calc(100% - 20px) !important;
+        max-width: 100% !important;
+        border-radius: 16px;
     }
     
     .modal-actions {
