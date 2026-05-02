@@ -1253,8 +1253,17 @@ input[type=range]::-webkit-slider-runnable-track {
     .analytics-grid { grid-template-columns: 1fr !important; }
     
     /* Tables */
-    .table-container { overflow-x: auto !important; margin-top: 1rem; }
-    .glass-table { min-width: 700px !important; }
+    .table-container { overflow-x: hidden !important; margin-top: 1rem; width: 100%; }
+    .glass-table { min-width: 0 !important; width: 100% !important; table-layout: fixed; }
+    
+    /* Hide non-essential table columns on mobile */
+    .glass-table th:nth-child(3), .glass-table td:nth-child(3), /* Month Group */
+    .glass-table th:nth-child(5), .glass-table td:nth-child(5), /* Rating */
+    .glass-table th:nth-child(7), .glass-table td:nth-child(7)  /* Update Button */
+    { display: none !important; }
+
+    .glass-table td { font-size: 0.8rem; padding: 0.75rem 0.5rem !important; overflow: hidden; text-overflow: ellipsis; }
+    .glass-table th { font-size: 0.75rem; padding: 0.75rem 0.5rem !important; }
 }
 
 @media screen and (max-width: 640px) {
