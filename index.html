@@ -294,6 +294,13 @@
                             <option value="In Progress">In Progress</option>
                             <option value="Completed">Completed</option>
                         </select>
+                        <select id="rating-filter" class="glass-input">
+                            <option value="All">All Ratings</option>
+                            <option value="5">★★★★★ (5/5)</option>
+                            <option value="4">★★★★☆ (4/5+)</option>
+                            <option value="3">★★★☆☆ (3/5+)</option>
+                            <option value="0">Unrated</option>
+                        </select>
                         <select id="sort-filter" class="glass-input">
                             <option value="default">↑ Oldest → Latest</option>
                             <option value="newest">↓ Latest → Oldest</option>
@@ -623,6 +630,6 @@
     <!-- Toast container -->
     <div id="toast-container" class="toast-container"></div>
 
-    <script src="app.js?v=25"></script>
+    <script src="app.js"></script>
 </body>
 </html>

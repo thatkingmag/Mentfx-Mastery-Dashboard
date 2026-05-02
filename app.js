@@ -317,12 +317,18 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderTable() {
         const term = searchFilter.value.toLowerCase();
         const stat = statusFilter.value;
+        const rat = document.getElementById('rating-filter')?.value || 'All';
         const sortBy = document.getElementById('sort-filter')?.value || 'default';
         trackerBody.innerHTML = '';
         
         let filtered = appData.filter(wb => {
             const matchInTags = (wb.tags || []).some(t => t.toLowerCase().includes(term));
             if (stat !== 'All' && wb.status !== stat) return false;
+            if (rat !== 'All') {
+                const r = wb.rating || 0;
+                if (rat === '0') { if (r !== 0) return false; }
+                else if (r < parseInt(rat)) return false;
+            }
             if (term && !wb.name.toLowerCase().includes(term) && (!wb.notes || !wb.notes.toLowerCase().includes(term)) && !matchInTags) return false;
             return true;
         });
@@ -394,12 +400,18 @@ document.addEventListener('DOMContentLoaded', () => {
         const container = document.getElementById('grid-container');
         const term = searchFilter.value.toLowerCase();
         const stat = statusFilter.value;
+        const rat = document.getElementById('rating-filter')?.value || 'All';
         const sortBy = document.getElementById('sort-filter')?.value || 'default';
         container.innerHTML = '';
 
         let filtered = appData.filter(wb => {
             const matchInTags = (wb.tags || []).some(t => t.toLowerCase().includes(term));
             if (stat !== 'All' && wb.status !== stat) return false;
+            if (rat !== 'All') {
+                const r = wb.rating || 0;
+                if (rat === '0') { if (r !== 0) return false; }
+                else if (r < parseInt(rat)) return false;
+            }
             if (term && !wb.name.toLowerCase().includes(term) && (!wb.notes || !wb.notes.toLowerCase().includes(term)) && !matchInTags) return false;
             return true;
         });
@@ -464,6 +476,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const container = document.getElementById('calendar-container');
         const term = searchFilter.value.toLowerCase();
         const stat = statusFilter.value;
+        const rat = document.getElementById('rating-filter')?.value || 'All';
         container.innerHTML = '';
 
         // Group by Year, then by Month Group
@@ -471,6 +484,11 @@ document.addEventListener('DOMContentLoaded', () => {
         appData.forEach(wb => {
             const matchInTags = (wb.tags || []).some(t => t.toLowerCase().includes(term));
             if (stat !== 'All' && wb.status !== stat) return;
+            if (rat !== 'All') {
+                const r = wb.rating || 0;
+                if (rat === '0') { if (r !== 0) return; }
+                else if (r < parseInt(rat)) return;
+            }
             if (term && !wb.name.toLowerCase().includes(term) && (!wb.notes || !wb.notes.toLowerCase().includes(term)) && !matchInTags) return;
             
             const yearMatch = wb.monthGroup.match(/\d{4}/);
@@ -1213,25 +1231,26 @@ document.addEventListener('DOMContentLoaded', () => {
             const completed = mod.lessons.filter(l => masteryProgress[l.id]?.status === 'Completed').length;
             const pct = total ? Math.round((completed / total) * 100) : 0;
 
-            // Progress Ring SVG
-            const radius = 16;
-            const circumference = 2 * Math.PI * radius;
-            const offset = circumference - (pct / 100) * circumference;
+            const isFullyDone = pct === 100;
+            const completionBadge = isFullyDone ? '<span class="module-done-badge">✓ Completed</span>' : '';
 
             card.innerHTML = `
                 <div class="module-card-header" onclick="toggleModule(${mod.module})">
                     <div class="progress-ring-container">
                         <svg class="progress-ring" width="40" height="40">
                             <circle class="progress-ring-bg" stroke-width="3" fill="transparent" r="${radius}" cx="20" cy="20"/>
-                            <circle class="progress-ring-circle" stroke="var(--accent)" stroke-width="3" 
+                            <circle class="progress-ring-circle" stroke="${isFullyDone ? '#10b981' : 'var(--accent)'}" stroke-width="3" 
                                     stroke-dasharray="${circumference} ${circumference}" 
                                     stroke-dashoffset="${offset}" 
                                     stroke-linecap="round" fill="transparent" r="${radius}" cx="20" cy="20"/>
                         </svg>
                         <span class="progress-ring-val">${pct}%</span>
                     </div>
-                    <div style="display:flex; flex-direction:column; gap:0.25rem;">
-                        <span class="module-progress-chip">${completed}/${total} Done</span>
+                    <div style="display:flex; flex-direction:column; gap:0.25rem; flex:1;">
+                        <div style="display:flex; align-items:center; gap:0.5rem;">
+                            <span class="module-progress-chip">${completed}/${total} Done</span>
+                            ${completionBadge}
+                        </div>
                         <h3>Module ${mod.module}: ${mod.title}</h3>
                     </div>
                     <svg class="collapse-chevron" stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" height="1.2em" width="1.2em" xmlns="http://www.w3.org/2000/svg"><polyline points="6 9 12 15 18 9"></polyline></svg>
@@ -2502,6 +2521,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const sortFilter = document.getElementById('sort-filter');
     if (sortFilter) {
         sortFilter.addEventListener('change', () => {
+            renderCurrentView();
+        });
+    }
+
+    const ratingFilter = document.getElementById('rating-filter');
+    if (ratingFilter) {
+        ratingFilter.addEventListener('change', () => {
             renderCurrentView();
         });
     }

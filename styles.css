@@ -1866,4 +1866,15 @@ body.bulk-edit-mode .bulk-col {
     box-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
 }
 
+.module-done-badge {
+    background: rgba(16, 185, 129, 0.15);
+    color: #10b981;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
 /* End of Styles */

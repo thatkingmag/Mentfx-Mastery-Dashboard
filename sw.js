@@ -1,44 +1,12 @@
-const CACHE_NAME = 'mentfx-v1';
-const ASSETS = [
-  './',
-  './index.html',
-  './styles.css',
-  './app.js',
-  './data.js',
-  './masteryData.js',
-  './applicationData.js',
-  './manifest.json'
-];
-
-// Install Event
-self.addEventListener('install', (e) => {
-  e.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      console.log('Service Worker: Caching Files');
-      return cache.addAll(ASSETS);
-    })
-  );
-});
-
-// Activate Event
+// Temporary Bypass Service Worker to fix 404 issue
+self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', (e) => {
   e.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cache) => {
-          if (cache !== CACHE_NAME) {
-            console.log('Service Worker: Clearing Old Cache');
-            return caches.delete(cache);
-          }
-        })
-      );
-    })
+    caches.keys().then(names => Promise.all(names.map(name => caches.delete(name))))
+    .then(() => self.clients.claim())
   );
 });
 
-// Fetch Event
 self.addEventListener('fetch', (e) => {
-  e.respondWith(
-    fetch(e.request).catch(() => caches.match(e.request))
-  );
+  e.respondWith(fetch(e.request));
 });
