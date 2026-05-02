@@ -44,6 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Initial Renders
         UI.showTab('dashboard');
+        UI.updateProfileUI();
         UI.updateClock();
         setInterval(UI.updateClock, 1000);
 
