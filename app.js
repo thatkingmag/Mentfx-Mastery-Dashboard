@@ -408,11 +408,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
         filtered.forEach((wb, index) => {
             const card = document.createElement('div');
-            card.className = 'webinar-card glass';
+            const isSelected = selectedItems.has(wb.id);
+            card.className = `webinar-card glass ${isSelected ? 'selected' : ''}`;
 
             let statusClass = 'status-not-started';
             if (wb.status === 'In Progress') statusClass = 'status-in-progress';
             if (wb.status === 'Completed') statusClass = 'status-completed';
+
+            let bulkCheckHtml = '';
+            if (isBulkEditMode) {
+                bulkCheckHtml = `
+                    <div class="card-bulk-check">
+                        <input type="checkbox" class="bulk-check" data-id="${wb.id}" 
+                               ${isSelected ? 'checked' : ''} 
+                               onclick="toggleSelectItem('${wb.id}')">
+                    </div>
+                `;
+            }
 
             let linkHtml = wb.link ? `<a href="${wb.link}" target="_blank" class="btn-action" onclick="logActivity('${wb.id}', 'webinar', 'view')">Watch</a>` : '';
             let tagsHtml = (wb.tags || []).map(t => `<span class="tag-badge">#${t}</span>`).join('');
@@ -426,6 +438,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             card.innerHTML = `
                 <div class="card-header">
+                    ${bulkCheckHtml}
                     <button class="btn-quick-done ${isDone ? 'done' : ''}" 
                             title="${isDone ? 'Mark as Not Started' : 'Quick Complete'}"
                             onclick="toggleItemComplete('${wb.id}', 'webinar', event)">
