@@ -243,6 +243,37 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // Keyboard Shortcuts
+    document.addEventListener('keydown', (e) => {
+        // Esc to close any active modal
+        if (e.key === 'Escape') {
+            if (typeof closeModal === 'function') closeModal();
+            const profileModal = document.getElementById('profile-modal');
+            if (profileModal && profileModal.classList.contains('active')) {
+                profileModal.classList.remove('active');
+                profileModal.style.opacity = '0';
+                profileModal.style.pointerEvents = 'none';
+            }
+        }
+        
+        // Ctrl+S or Cmd+S to Save
+        if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+            e.preventDefault(); // Prevent browser save
+            
+            // If main edit modal is open
+            const editModal = document.getElementById('edit-modal');
+            if (editModal && editModal.classList.contains('active')) {
+                if (typeof saveChanges === 'function') saveChanges();
+            }
+            
+            // If Admin Manage form is open/active
+            const adminView = document.getElementById('admin-view');
+            if (adminView && adminView.classList.contains('active')) {
+                if (typeof handleAdminPush === 'function') handleAdminPush();
+            }
+        }
+    });
+
     // Initial Render & Sync
     try {
         loadFromServer();
@@ -1741,19 +1772,58 @@ document.addEventListener('DOMContentLoaded', () => {
         const owner = document.getElementById('admin-repo-owner').value.trim();
         const repo = document.getElementById('admin-repo-name').value.trim();
         const remember = document.getElementById('admin-remember-token').checked;
+        const localOnly = document.getElementById('admin-local-only').checked;
 
-        if (!name || !link || !group || !token) {
+        if (!localOnly && (!name || !link || !group || !token)) {
             showToast('Please fill in all fields and provide your GitHub token.', 'error');
             return;
         }
+        
+        if (localOnly && (!name || !link || !group)) {
+            showToast('Please fill in the Item Name, Link, and Group fields.', 'error');
+            return;
+        }
 
-        if (remember) localStorage.setItem('mentfx_github_token', token);
-        else localStorage.removeItem('mentfx_github_token');
+        if (!localOnly) {
+            if (remember) localStorage.setItem('mentfx_github_token', token);
+            else localStorage.removeItem('mentfx_github_token');
+        }
 
         const btn = document.getElementById('btn-push-update');
         const originalText = btn.innerHTML;
         btn.disabled = true;
-        btn.innerHTML = 'Syncing...';
+        btn.innerHTML = localOnly ? 'Saving...' : 'Syncing...';
+
+        if (localOnly) {
+            try {
+                const newItem = { id: Date.now().toString(), name, link, group, status: 'Not Started', rating: 0, notes: '', tags: [] };
+                
+                if (category === 'webinar') {
+                    if (typeof webinarData !== 'undefined') webinarData.unshift(newItem);
+                    appData.unshift(newItem);
+                    localStorage.setItem('mentfxData', JSON.stringify(appData));
+                } else if (category === 'mastery') {
+                    if (typeof masteryData !== 'undefined') masteryData.unshift(newItem); 
+                    localStorage.setItem('mentfxMasteryData', JSON.stringify(masteryData));
+                } else {
+                    if (typeof applicationData !== 'undefined') applicationData.unshift(newItem);
+                    appApplicationData.unshift(newItem);
+                    localStorage.setItem('mentfxApplication', JSON.stringify(appApplicationData));
+                }
+
+                showToast('Saved successfully to local storage.', 'success');
+                resetAdminForm();
+                renderAdminManageList();
+                if (typeof saveToServer === 'function') saveToServer(); 
+                return;
+            } catch (localErr) {
+                showToast('Error saving locally: ' + localErr.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+            return;
+        }
 
         try {
             // Determine which file to update

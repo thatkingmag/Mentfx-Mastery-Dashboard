@@ -459,6 +459,11 @@
                                 <input type="text" id="admin-item-group" class="glass-input" placeholder="e.g. June 2026 or Psychology">
                             </div>
                             
+                             <div class="form-group" style="margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                                <input type="checkbox" id="admin-local-only" style="width: 18px; height: 18px; cursor: pointer;">
+                                <label for="admin-local-only" style="margin-bottom: 0; cursor: pointer; font-size: 0.9rem; opacity: 0.8;">Save locally only (Skip GitHub sync)</label>
+                            </div>
+                            
                             <div class="modal-actions" style="margin-top: 2rem; justify-content: flex-start; display: flex; gap: 1rem;">
                                 <button class="btn btn-primary" id="btn-push-update" onclick="handleAdminPush()">
                                     <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" height="1.1em" width="1.1em" xmlns="http://www.w3.org/2000/svg" style="margin-right: 0.5rem;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
@@ -592,6 +597,6 @@
     <!-- Toast container -->
     <div id="toast-container" class="toast-container"></div>
 
-    <script src="app.js?v=17"></script>
+    <script src="app.js?v=18"></script>
 </body>
 </html>
