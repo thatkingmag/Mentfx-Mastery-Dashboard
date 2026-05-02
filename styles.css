@@ -1254,22 +1254,29 @@ input[type=range]::-webkit-slider-runnable-track {
         position: relative !important;
         bottom: 0 !important;
         left: 0 !important;
+        right: 0 !important;
         transform: none !important;
         width: 100% !important;
         max-width: none !important;
         white-space: normal !important;
         border-radius: 0 !important;
-        margin-top: 3rem;
-        padding: 1.5rem !important;
+        margin: 3rem 0 0 0 !important;
+        padding: 1.5rem 1rem !important;
+        padding-bottom: calc(1.5rem + env(safe-area-inset-bottom)) !important;
         border-top: 1px solid var(--border);
         background: rgba(15, 23, 42, 0.5) !important;
         backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
         justify-content: center !important;
-        flex-direction: column;
         gap: 0.75rem;
         text-align: center;
+        box-sizing: border-box !important;
     }
-    .global-footer .user-profile { justify-content: center; }
+    .footer-sep { display: none !important; }
+    .global-footer .user-profile { justify-content: center; width: 100%; margin: 0; }
 
     .dashboard-grid { grid-template-columns: 1fr !important; gap: 1.5rem !important; }
     .stat-card { padding: 1.5rem !important; }
