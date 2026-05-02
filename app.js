@@ -1050,6 +1050,8 @@ document.addEventListener('DOMContentLoaded', () => {
             let notesHtml = item.notes ? `<div class="lesson-notes-preview" style="margin-top:0.5rem; opacity:0.7">${item.notes}</div>` : '';
             let tagsHtml = (item.tags || []).map(t => `<span class="tag-badge">#${t}</span>`).join('');
 
+            const isDone = item.status === 'Completed';
+
             card.innerHTML = `
                 <div class="card-header">
                     <span class="card-month">${item.category || 'Study'}</span>
