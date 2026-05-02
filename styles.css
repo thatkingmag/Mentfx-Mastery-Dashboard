@@ -1274,7 +1274,8 @@ input[type=range]::-webkit-slider-runnable-track {
     .view header { padding: 2.5rem 1.5rem !important; }
     
     /* Charts */
-    .chart-card { height: 350px !important; margin-bottom: 1.5rem !important; }
+    .chart-card { height: auto !important; min-height: 250px !important; max-height: 360px !important; margin-bottom: 1.5rem !important; }
+    .chart-card canvas { max-height: 260px !important; }
     .analytics-grid { grid-template-columns: 1fr !important; }
     
     /* Tables */

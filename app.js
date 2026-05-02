@@ -1025,8 +1025,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: window.innerWidth > 768,
-                    aspectRatio: 2, // Wider and shorter on mobile
+                    maintainAspectRatio: true,
+                    aspectRatio: window.innerWidth <= 768 ? 1.6 : 2,
                     interaction: {
                         intersect: true,
                         mode: 'index'
