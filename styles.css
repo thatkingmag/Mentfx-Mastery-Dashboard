@@ -20,6 +20,27 @@
 html, body {
     overflow-x: hidden;
     width: 100%;
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary) var(--bg-dark);
+}
+
+/* Custom Scrollbar for Chrome/Safari */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-dark);
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(59, 130, 246, 0.3);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--primary);
 }
 
 body {
@@ -39,7 +60,8 @@ body {
     -webkit-backdrop-filter: var(--glass-blur);
     border: 1px solid var(--border);
     border-radius: 16px;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .glass-input {
@@ -1595,6 +1617,46 @@ input[type=range]::-webkit-slider-runnable-track {
     font-weight: 700; 
     position: absolute; 
     color: var(--text-muted); 
+}
+
+/* End of Styles */
+/* Pulse Animation for Streak */
+@keyframes pulse-soft {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.1); opacity: 0.8; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.streak-card .streak-icon {
+    animation: pulse-soft 3s infinite ease-in-out;
+}
+
+.btn-primary:hover {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
+    transform: translateY(-2px);
+}
+
+.btn-accent:hover {
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+    transform: translateY(-2px);
+}
+
+/* Skeleton Loading Utility */
+.skeleton {
+    background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.05) 75%);
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.5s infinite;
+    border-radius: 4px;
+}
+
+@keyframes skeleton-loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* Tooltip Polish */
+[title] {
+    cursor: help;
 }
 
 /* End of Styles */
