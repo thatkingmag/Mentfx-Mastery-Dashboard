@@ -113,5 +113,11 @@ window.MentfxUI = {
     }
 };
 
+// Global Mappings
 window.showTab = window.MentfxUI.showTab;
 window.toggleSidebar = window.MentfxUI.toggleSidebar;
+window.closeSidebar = window.MentfxUI.closeSidebar;
+window.openProfileModal = window.MentfxUI.openProfileModal;
+window.closeProfileModal = window.MentfxUI.closeProfileModal;
+window.saveProfile = window.MentfxUI.saveProfile;
+window.renderApplication = window.MentfxUI.renderApplication;
