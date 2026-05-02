@@ -1254,8 +1254,11 @@ input[type=range]::-webkit-slider-runnable-track {
         position: relative !important;
         bottom: 0 !important;
         left: 0 !important;
+        transform: none !important;
         width: 100% !important;
         max-width: none !important;
+        white-space: normal !important;
+        border-radius: 0 !important;
         margin-top: 3rem;
         padding: 1.5rem !important;
         border-top: 1px solid var(--border);
