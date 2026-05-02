@@ -655,6 +655,7 @@ document.addEventListener('DOMContentLoaded', () => {
             mentfxMastery: JSON.parse(localStorage.getItem('mentfxMastery') || '{}'),
             mentfxProfile: JSON.parse(localStorage.getItem('mentfxProfile') || '{}'),
             mentfxApplication: JSON.parse(localStorage.getItem('mentfxApplication') || '[]'),
+            mentfxActivityLog: JSON.parse(localStorage.getItem('mentfxActivityLog') || '[]'),
             exportDate: new Date().toISOString()
         };
 
@@ -687,6 +688,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (data.mentfxMastery) localStorage.setItem('mentfxMastery', JSON.stringify(data.mentfxMastery));
                 if (data.mentfxProfile) localStorage.setItem('mentfxProfile', JSON.stringify(data.mentfxProfile));
                 if (data.mentfxApplication) localStorage.setItem('mentfxApplication', JSON.stringify(data.mentfxApplication));
+                if (data.mentfxActivityLog) localStorage.setItem('mentfxActivityLog', JSON.stringify(data.mentfxActivityLog));
 
                 showToast('Import successful! Reloading...', 'success');
                 setTimeout(() => window.location.reload(), 1500);
