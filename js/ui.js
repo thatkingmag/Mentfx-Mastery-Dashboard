@@ -31,7 +31,16 @@ window.MentfxUI = {
             const el = document.getElementById(id);
             if (el) el.textContent = fullStr;
         });
+    },
+
+    toggleSidebar: function() {
+        document.body.classList.toggle('sidebar-active');
+    },
+
+    closeSidebar: function() {
+        document.body.classList.remove('sidebar-active');
     }
 };
 
 window.showTab = window.MentfxUI.showTab;
+window.toggleSidebar = window.MentfxUI.toggleSidebar;
