@@ -1204,10 +1204,16 @@ input[type=range]::-webkit-slider-runnable-track {
     }
 
     .chart-card {
-        height: 300px !important; /* Smaller charts on mobile */
-        padding: 1.25rem !important;
+        height: auto !important; /* Let content dictate height */
+        min-height: 250px !important;
+        padding: 1rem !important;
         flex: 1 1 100% !important;
         width: 100% !important;
+    }
+
+    .chart-card canvas {
+        max-width: 100% !important;
+        touch-action: pan-y !important; /* Allow vertical scroll even when swiping on chart */
     }
 
     .analytics-row {

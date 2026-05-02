@@ -1006,48 +1006,59 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (trendChart) trendChart.destroy();
 
-        trendChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: labels.length ? labels : ['No Data'],
-                datasets: [{
-                    label: 'Avg Comprehension',
-                    data: data.length ? data : [0],
-                    borderColor: '#3b82f6',
-                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                    borderWidth: 2,
-                    pointRadius: labels.length > 1 ? 3 : 5,
-                    fill: true,
-                    tension: 0.4
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                        backgroundColor: 'rgba(15, 23, 42, 0.9)',
-                        titleColor: '#fff',
-                        bodyColor: '#fff',
-                        borderColor: 'rgba(255,255,255,0.1)',
-                        borderWidth: 1
-                    }
+        try {
+            if (typeof Chart === 'undefined') return;
+            trendChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels.length ? labels : ['No Data'],
+                    datasets: [{
+                        label: 'Avg Comprehension',
+                        data: data.length ? data : [0],
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        borderWidth: 2,
+                        pointRadius: labels.length > 1 ? 3 : 5,
+                        fill: true,
+                        tension: 0.4
+                    }]
                 },
-                scales: {
-                    y: {
-                        min: 0,
-                        max: 5,
-                        grid: { color: 'rgba(255,255,255,0.05)' },
-                        ticks: { color: 'rgba(255,255,255,0.5)' }
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: window.innerWidth > 768,
+                    aspectRatio: 2, // Wider and shorter on mobile
+                    interaction: {
+                        intersect: true,
+                        mode: 'index'
                     },
-                    x: {
-                        grid: { display: false },
-                        ticks: { color: 'rgba(255,255,255,0.5)', maxTicksLimit: 7 }
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            enabled: window.innerWidth > 768, // Disable tooltips on mobile to prioritize scrolling
+                            backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                            titleColor: '#fff',
+                            bodyColor: '#fff',
+                            borderColor: 'rgba(255,255,255,0.1)',
+                            borderWidth: 1
+                        }
+                    },
+                    scales: {
+                        y: {
+                            min: 0,
+                            max: 5,
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: 'rgba(255,255,255,0.5)', stepSize: 1 }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: 'rgba(255,255,255,0.5)', maxTicksLimit: 6 }
+                        }
                     }
                 }
-            }
-        });
+            });
+        } catch (chartErr) {
+            console.error("Error rendering Trend Chart:", chartErr);
+        }
     }
 
     function renderApplication() {
