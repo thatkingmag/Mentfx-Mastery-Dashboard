@@ -280,6 +280,17 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (e) {
         console.error("loadFromServer failed:", e);
     }
+
+    // Handle responsiveness for dynamic elements like Heatmap
+    let resizeTimer;
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => {
+            if (typeof renderHeatmap === 'function') renderHeatmap();
+        }, 250);
+    });
+
+    document.body.style.overflowX = 'hidden';
     
     renderCurrentView();
     updateDashboard();
@@ -937,15 +948,21 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         const today = new Date();
-        const oneYearAgo = new Date(today);
-        oneYearAgo.setFullYear(today.getFullYear() - 1);
         
-        // Start from Sunday of the week 1 year ago
-        const start = new Date(oneYearAgo);
+        // On mobile, show only last 18 weeks (126 days) to prevent horizontal scroll
+        const isMobile = window.innerWidth <= 768;
+        const weeksToShow = isMobile ? 18 : 53;
+        const totalDays = weeksToShow * 7;
+        
+        // Update CSS grid columns dynamically
+        grid.style.gridTemplateColumns = `repeat(${weeksToShow}, 1fr)`;
+
+        const start = new Date(today);
+        start.setDate(today.getDate() - (totalDays - 1));
+        // Adjust to the Sunday of that week
         start.setDate(start.getDate() - start.getDay());
 
-        // Create 371 boxes (53 weeks * 7 days)
-        for (let i = 0; i < 371; i++) {
+        for (let i = 0; i < totalDays; i++) {
             const current = new Date(start);
             current.setDate(start.getDate() + i);
             const dateStr = current.toISOString().split('T')[0];

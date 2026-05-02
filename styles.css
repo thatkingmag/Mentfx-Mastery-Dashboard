@@ -14,12 +14,13 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
 html, body {
-    overflow-x: hidden;
-    width: 100%;
+    overflow-x: hidden !important;
+    max-width: 100vw !important;
+    width: 100% !important;
     scrollbar-width: thin;
     scrollbar-color: var(--primary) var(--bg-dark);
 }
@@ -377,7 +378,7 @@ header p {
 /* Heatmap */
 .heatmap-scroll-wrapper {
     width: 100%;
-    overflow-x: auto;
+    overflow-x: hidden; /* No more scrolling, we adjust columns in JS */
     padding-bottom: 0.5rem;
     margin-top: 1rem;
 }
@@ -1194,11 +1195,23 @@ input[type=range]::-webkit-slider-runnable-track {
 
     .main-content {
         margin-left: 0 !important;
-        padding: 1.25rem !important;
-        padding-top: 6.5rem !important; /* Increased space for hamburger */
+        padding: 1rem !important;
+        padding-top: 6.5rem !important;
         width: 100% !important;
         min-height: 100vh !important;
         display: block !important;
+        overflow-x: hidden !important;
+    }
+
+    .chart-card {
+        height: 300px !important; /* Smaller charts on mobile */
+        padding: 1.25rem !important;
+        flex: 1 1 100% !important;
+        width: 100% !important;
+    }
+
+    .analytics-row {
+        gap: 1rem !important;
     }
 
     .hamburger {
