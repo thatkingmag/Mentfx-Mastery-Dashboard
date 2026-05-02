@@ -3,6 +3,7 @@
  */
 window.MentfxAdmin = {
     saveToServer: async function() {
+        if (window.location.port !== '8000') return;
         const S = window.MentfxState;
         const data = {
             webinars: S.appData,

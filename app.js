@@ -35,9 +35,11 @@ document.addEventListener('DOMContentLoaded', () => {
         UI.updateClock();
         setInterval(UI.updateClock, 1000);
 
-        // Sync with server if local
-        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        // Sync with server if local and on the correct port (8000)
+        if (window.location.port === '8000') {
             loadFromServer();
+        } else {
+            console.log('Running on secondary local port (5500). Server sync disabled to prevent 404s.');
         }
 
         setupEventListeners();
