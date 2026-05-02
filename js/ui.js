@@ -105,12 +105,10 @@ window.MentfxUI = {
         avatarElements.forEach(el => {
             if (el) {
                 if (profile.avatarUrl) {
-                    el.style.backgroundImage = `url(${profile.avatarUrl})`;
-                    el.style.backgroundSize = 'cover';
-                    el.style.backgroundPosition = 'center';
+                    el.style.background = `url("${profile.avatarUrl}") center/cover no-repeat`;
                     el.textContent = '';
                 } else {
-                    el.style.backgroundImage = 'none';
+                    el.style.background = 'linear-gradient(135deg, var(--primary), var(--accent))';
                     el.textContent = initials;
                 }
             }
