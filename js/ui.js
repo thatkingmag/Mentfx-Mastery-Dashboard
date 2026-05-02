@@ -73,8 +73,8 @@ window.MentfxUI = {
         window.MentfxState.userProfile.name = name;
         window.MentfxState.userProfile.motto = motto;
         window.MentfxState.saveLocalData();
-        this.updateProfileUI();
-        this.closeProfileModal();
+        window.MentfxUI.updateProfileUI();
+        window.MentfxUI.closeProfileModal();
         window.showToast('Profile updated!', 'success');
     },
 
