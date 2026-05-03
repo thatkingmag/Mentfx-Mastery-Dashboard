@@ -219,6 +219,72 @@ document.addEventListener('DOMContentLoaded', () => {
         window.updateDashboard?.();
     };
 
+    window.handleGlobalSearch = (query) => {
+        const S = window.MentfxState;
+        const results = [];
+        
+        // Search Webinars
+        S.appData.forEach(item => {
+            if (item.name.toLowerCase().includes(query) || (item.notes && item.notes.toLowerCase().includes(query))) {
+                results.push({ ...item, type: 'webinar' });
+            }
+        });
+        
+        // Search Mastery
+        (window.masteryData || []).forEach(mod => {
+            mod.lessons.forEach(lesson => {
+                if (lesson.name.toLowerCase().includes(query)) {
+                    results.push({ ...lesson, type: 'mastery', module: mod.module, status: S.masteryProgress[lesson.id]?.status || 'Not Started' });
+                }
+            });
+        });
+        
+        // Search Application
+        S.appApplicationData.forEach(item => {
+            if (item.name.toLowerCase().includes(query)) {
+                results.push({ ...item, type: 'application' });
+            }
+        });
+        
+        renderSearchResults(results, query);
+    };
+
+    function renderSearchResults(results, query) {
+        const container = document.getElementById('search-results-content');
+        const stats = document.getElementById('search-stats');
+        if (!container || !stats) return;
+        
+        UI.showTab('search-results');
+        stats.textContent = `Found ${results.length} matches for "${query}"`;
+        
+        container.innerHTML = '';
+        if (results.length === 0) {
+            container.innerHTML = '<div class="empty-state">No matches found. Try a different term.</div>';
+            return;
+        }
+
+        results.forEach(item => {
+            const card = document.createElement('div');
+            card.className = 'webinar-card glass search-result-card';
+            
+            let typeLabel = item.type.charAt(0).toUpperCase() + item.type.slice(1);
+            if (item.type === 'mastery') typeLabel = `Mastery (Mod ${item.module})`;
+            
+            card.innerHTML = `
+                <div class="card-header">
+                    <span class="card-month">${typeLabel}</span>
+                    <span class="status-badge status-${(item.status || 'not-started').toLowerCase().replace(' ', '-')}">${item.status || 'Not Started'}</span>
+                </div>
+                <div class="card-title">${item.name}</div>
+                <div class="card-footer">
+                    ${item.link ? `<a href="${item.link}" target="_blank" class="btn-action">Watch</a>` : ''}
+                    <button class="btn-action" onclick="openEditModal('${item.id}', '${item.type}')">Edit</button>
+                </div>
+            `;
+            container.appendChild(card);
+        });
+    }
+
     // Add understanding range listener
     document.getElementById('modal-understanding')?.addEventListener('input', (e) => {
         document.getElementById('modal-understanding-val').textContent = e.target.value;

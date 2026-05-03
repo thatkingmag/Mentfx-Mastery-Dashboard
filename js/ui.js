@@ -40,6 +40,7 @@ window.MentfxUI = {
                 <div class="card-title">${item.name}</div>
                 <div class="card-footer">
                     <button class="btn-quick-done ${isDone ? 'done' : ''}" onclick="toggleItemComplete('${item.id}', 'application', event)">${isDone ? '✓' : ''}</button>
+                    ${item.link ? `<a href="${item.link}" target="_blank" class="btn-action">Watch</a>` : ''}
                     <button class="btn-action" onclick="openEditModal('${item.id}', 'application')">Edit</button>
                 </div>
             `;
@@ -161,6 +162,11 @@ window.MentfxUI = {
         const overlay = document.getElementById('sidebar-overlay');
         if (sidebar) sidebar.classList.remove('active');
         if (overlay) overlay.classList.remove('active');
+    },
+
+    showAdminView: function() {
+        this.closeProfileModal();
+        this.showTab('admin');
     }
 };
 
@@ -173,3 +179,4 @@ window.closeProfileModal = window.MentfxUI.closeProfileModal;
 window.saveProfile = window.MentfxUI.saveProfile;
 window.renderApplication = window.MentfxUI.renderApplication;
 window.handleProfilePicUpload = window.MentfxUI.handleProfilePicUpload;
+window.showAdminView = window.MentfxUI.showAdminView.bind(window.MentfxUI);

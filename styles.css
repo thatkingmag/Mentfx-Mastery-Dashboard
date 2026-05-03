@@ -1964,4 +1964,90 @@ body.bulk-edit-mode .bulk-col {
     border: 1px solid rgba(16, 185, 129, 0.3);
 }
 
+/* New Watch Button Styles */
+.btn-watch-mini {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    background: rgba(59, 130, 246, 0.1);
+    color: var(--primary);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    transition: all 0.2s;
+}
+
+.btn-watch-mini:hover {
+    background: var(--primary);
+    color: white;
+    transform: translateY(-2px);
+}
+
+.lesson-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.03);
+    margin-bottom: 0.5rem;
+    transition: all 0.2s;
+}
+
+.lesson-item:hover {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.lesson-info {
+    flex: 1;
+    cursor: pointer;
+}
+
+.lesson-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-watch-now {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem 1.25rem;
+    border-radius: 8px;
+    color: white !important;
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.btn-watch-now:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+    filter: brightness(1.1);
+}
+
+.next-up-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 180px;
+}
+
+.next-up-content {
+    flex: 1;
+    cursor: pointer;
+}
+
+.next-up-actions {
+    margin-top: 1.25rem;
+    display: flex;
+    justify-content: flex-end;
+}
+
 /* End of Styles */

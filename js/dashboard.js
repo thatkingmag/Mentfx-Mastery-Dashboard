@@ -65,7 +65,28 @@ window.MentfxDashboard = {
             U.updateText('active-module-title', activeMastery.name);
         }
 
-        // 6. Streak
+        // 7. Latest Application Concept
+        const latestApp = S.appApplicationData.find(a => a.status === 'In Progress') || S.appApplicationData.find(a => a.status === 'Completed');
+        if (latestApp) {
+            U.updateText('latest-app-concept', latestApp.name);
+        }
+
+        // 8. Setup card listeners (one-time)
+        if (!this.listenersSet) {
+            const cards = [
+                { id: 'webinar-progress-card', tab: 'tracker' },
+                { id: 'active-webinar-card', tab: 'tracker' },
+                { id: 'in-progress-card', tab: 'tracker' },
+                { id: 'app-progress-card', tab: 'application' }
+            ];
+            cards.forEach(c => {
+                const el = document.getElementById(c.id);
+                if (el) el.onclick = () => window.showTab(c.tab);
+            });
+            this.listenersSet = true;
+        }
+
+        // 6. Streak (moved down)
         this.updateStreak();
     },
 
@@ -260,21 +281,27 @@ window.MentfxDashboard = {
         const nextMastery = masteryLessons.find(l => S.masteryProgress[l.id]?.status !== 'Completed');
         
         [
-            { item: nextWebinar, type: 'Next Webinar', color: 'var(--primary)' },
-            { item: nextMastery, type: 'Next Mastery Lesson', color: 'var(--accent)' }
+            { item: nextWebinar, type: 'Next Webinar', color: 'var(--primary)', tab: 'tracker' },
+            { item: nextMastery, type: 'Next Mastery Lesson', color: 'var(--accent)', tab: 'mastery' }
         ].forEach(target => {
             if (!target.item) return;
             const card = document.createElement('div');
             card.className = 'next-up-card glass';
+            
+            const watchBtn = target.item.link 
+                ? `<a href="${target.item.link}" target="_blank" class="btn-watch-now" style="background:${target.color}" onclick="event.stopPropagation()">Watch Now</a>`
+                : `<button class="btn-watch-now" style="background:${target.color}" onclick="window.showTab('${target.tab}')">View Details</button>`;
+
             card.innerHTML = `
-                <div class="next-up-type" style="color:${target.color}">${target.type}</div>
-                <div class="next-up-title">${target.item.name}</div>
-                <div class="next-up-subtitle">${target.item.monthGroup || ''}</div>
+                <div class="next-up-content" onclick="window.showTab('${target.tab}')">
+                    <div class="next-up-type" style="color:${target.color}">${target.type}</div>
+                    <div class="next-up-title">${target.item.name}</div>
+                    <div class="next-up-subtitle">${target.item.monthGroup || ''}</div>
+                </div>
+                <div class="next-up-actions">
+                    ${watchBtn}
+                </div>
             `;
-            card.onclick = () => {
-                if (target.type.includes('Webinar')) window.showTab('tracker');
-                else window.showTab('mastery');
-            };
             container.appendChild(card);
         });
     }

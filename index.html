@@ -468,7 +468,7 @@
 
                 <div class="admin-tabs">
                     <button class="admin-tab-btn active" data-admin-tab="add">Add New Item</button>
-                    <button class="admin-tab-btn" data-admin-tab="manage" onclick="renderAdminManageList()">Manage Existing</button>
+                    <button class="admin-tab-btn" data-admin-tab="manage">Manage Existing</button>
                     <button class="admin-tab-btn" data-admin-tab="settings">Settings</button>
                 </div>
                 
@@ -548,6 +548,10 @@
                                     <input type="text" id="admin-repo-owner" class="glass-input" value="thatkingmag" placeholder="Owner">
                                     <input type="text" id="admin-repo-name" class="glass-input" value="Mentfx-Mastery-Dashboard" placeholder="Repo">
                                 </div>
+                            </div>
+                            
+                            <div class="modal-actions" style="margin-top: 2rem; justify-content: flex-end;">
+                                <button class="btn btn-primary" onclick="saveAdminSettings()">Save Configuration</button>
                             </div>
                         </div>
                     </div>
