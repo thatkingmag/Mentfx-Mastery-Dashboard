@@ -204,7 +204,7 @@ window.MentfxDashboard = {
             });
         }
 
-        // Sidebar Pie Chart - Overall Progress
+        // Sidebar Pie Chart - Overall Progress (Multi-Segment)
         const sidePieCtx = document.getElementById('sidebarPieChart')?.getContext('2d');
         if (sidePieCtx) {
             if (S.sidebarPieChartInstance) S.sidebarPieChartInstance.destroy();
@@ -214,16 +214,24 @@ window.MentfxDashboard = {
             const wPct = S.appData.length ? (S.appData.filter(w => w.status === 'Completed').length / S.appData.length) : 0;
             const aPct = S.appApplicationData.length ? (S.appApplicationData.filter(a => a.status === 'Completed').length / S.appApplicationData.length) : 0;
             
-            const overallPct = (mPct + wPct + aPct) / 3;
-            const completed = overallPct * 100;
-            const remaining = 100 - completed;
+            // Each category takes up 1/3 of the total doughnut
+            const mSegment = (mPct * 100) / 3;
+            const wSegment = (wPct * 100) / 3;
+            const aSegment = (aPct * 100) / 3;
+            const remaining = 100 - (mSegment + wSegment + aSegment);
             
             S.sidebarPieChartInstance = new Chart(sidePieCtx, {
                 type: 'doughnut',
                 data: {
+                    labels: ['Mastery', 'Webinars', 'Application', 'Remaining'],
                     datasets: [{
-                        data: [completed, remaining],
-                        backgroundColor: ['#3b82f6', 'rgba(255,255,255,0.05)'],
+                        data: [mSegment, wSegment, aSegment, remaining],
+                        backgroundColor: [
+                            '#10b981', // Mastery Green
+                            '#3b82f6', // Webinar Blue
+                            '#14b8a6', // Application Teal
+                            'rgba(255,255,255,0.05)' // Remaining Gray
+                        ],
                         borderWidth: 0
                     }]
                 },
@@ -231,7 +239,19 @@ window.MentfxDashboard = {
                     responsive: true,
                     maintainAspectRatio: false,
                     cutout: '80%',
-                    plugins: { legend: { display: false } }
+                    plugins: { 
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => {
+                                    const label = context.label || '';
+                                    const value = context.raw || 0;
+                                    if (label === 'Remaining') return '';
+                                    return `${label}: ${Math.round(value * 3)}%`; // Convert back to actual category percentage
+                                }
+                            }
+                        }
+                    }
                 }
             });
         }
