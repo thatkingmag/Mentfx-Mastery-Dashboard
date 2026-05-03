@@ -184,12 +184,19 @@ window.MentfxDashboard = {
             });
         }
 
-        // Sidebar Pie Chart
+        // Sidebar Pie Chart - Overall Progress
         const sidePieCtx = document.getElementById('sidebarPieChart')?.getContext('2d');
         if (sidePieCtx) {
             if (S.sidebarPieChartInstance) S.sidebarPieChartInstance.destroy();
-            const completed = S.appData.filter(w => w.status === 'Completed').length;
-            const remaining = S.appData.length - completed;
+            
+            const masteryLessons = (window.masteryData || []).flatMap(m => m.lessons);
+            const mPct = masteryLessons.length ? (masteryLessons.filter(l => S.masteryProgress[l.id]?.status === 'Completed').length / masteryLessons.length) : 0;
+            const wPct = S.appData.length ? (S.appData.filter(w => w.status === 'Completed').length / S.appData.length) : 0;
+            const aPct = S.appApplicationData.length ? (S.appApplicationData.filter(a => a.status === 'Completed').length / S.appApplicationData.length) : 0;
+            
+            const overallPct = (mPct + wPct + aPct) / 3;
+            const completed = overallPct * 100;
+            const remaining = 100 - completed;
             
             S.sidebarPieChartInstance = new Chart(sidePieCtx, {
                 type: 'doughnut',
