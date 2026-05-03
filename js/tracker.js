@@ -21,6 +21,11 @@ window.MentfxTracker = {
         const activeMode = document.getElementById(`${mode}-mode`);
         if (activeMode) activeMode.classList.add('active');
 
+        // Update Toggle Buttons
+        document.querySelectorAll('.view-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.mode === mode);
+        });
+
         if (mode === 'list') this.renderTable();
         else if (mode === 'grid') this.renderGrid();
         else if (mode === 'calendar') this.renderCalendar();
@@ -29,6 +34,11 @@ window.MentfxTracker = {
             this.setupListeners();
             this.listenersSet = true;
         }
+    },
+
+    setTrackerView: function(mode) {
+        window.MentfxState.currentViewMode = mode;
+        this.renderCurrentView();
     },
 
     setupListeners: function() {
@@ -186,3 +196,4 @@ window.MentfxTracker = {
 };
 
 window.renderCurrentView = () => window.MentfxTracker.renderCurrentView();
+window.setTrackerView = (mode) => window.MentfxTracker.setTrackerView(mode);

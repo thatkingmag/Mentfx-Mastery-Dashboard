@@ -17,8 +17,22 @@ window.MentfxMastery = {
         if (pctBar) pctBar.style.width = `${pct}%`;
 
         const mode = window.MentfxState.currentMasteryViewMode;
+        
+        // Update Toggles
+        document.querySelectorAll('.mastery-view-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.modemastery === mode);
+        });
+        document.querySelectorAll('.mastery-mode').forEach(m => m.classList.remove('active'));
+        const active = document.getElementById(`mastery-${mode}`);
+        if (active) active.classList.add('active');
+
         if (mode === 'grid') this.renderMasteryGrid();
         else this.renderMasteryList();
+    },
+
+    setMasteryView: function(mode) {
+        window.MentfxState.currentMasteryViewMode = mode;
+        this.renderMastery();
     },
 
     renderMasteryGrid: function() {
@@ -102,3 +116,4 @@ window.MentfxMastery = {
 };
 
 window.renderMastery = () => window.MentfxMastery.renderMastery();
+window.setMasteryView = (mode) => window.MentfxMastery.setMasteryView(mode);
