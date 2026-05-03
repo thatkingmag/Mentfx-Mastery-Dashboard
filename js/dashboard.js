@@ -140,17 +140,37 @@ window.MentfxDashboard = {
                     datasets: [{
                         label: 'Webinars Completed',
                         data: data,
-                        backgroundColor: 'rgba(59, 130, 246, 0.5)',
-                        borderColor: '#3b82f6',
-                        borderWidth: 1
+                        backgroundColor: [
+                            'rgba(59, 130, 246, 0.6)',
+                            'rgba(16, 185, 129, 0.6)',
+                            'rgba(245, 158, 11, 0.6)',
+                            'rgba(139, 92, 246, 0.6)',
+                            'rgba(236, 72, 153, 0.6)',
+                            'rgba(20, 184, 166, 0.6)'
+                        ],
+                        borderColor: [
+                            '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#14b8a6'
+                        ],
+                        borderWidth: 1,
+                        borderRadius: 4
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
                     scales: {
-                        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } },
-                        x: { grid: { display: false } }
+                        y: { 
+                            beginAtZero: true, 
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: 'rgba(255,255,255,0.6)' }
+                        },
+                        x: { 
+                            grid: { display: false },
+                            ticks: { color: 'rgba(255,255,255,0.6)' }
+                        }
                     }
                 }
             });
@@ -172,7 +192,7 @@ window.MentfxDashboard = {
                     labels: ['Completed', 'In Progress', 'Not Started'],
                     datasets: [{
                         data: [counts.Completed, counts['In Progress'], counts['Not Started']],
-                        backgroundColor: ['#10b981', '#3b82f6', '#94a3b8'],
+                        backgroundColor: ['#10b981', '#3b82f6', '#fbbf24'],
                         borderWidth: 0
                     }]
                 },
