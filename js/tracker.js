@@ -24,6 +24,21 @@ window.MentfxTracker = {
         if (mode === 'list') this.renderTable();
         else if (mode === 'grid') this.renderGrid();
         else if (mode === 'calendar') this.renderCalendar();
+
+        if (!this.listenersSet) {
+            this.setupListeners();
+            this.listenersSet = true;
+        }
+    },
+
+    setupListeners: function() {
+        ['search-filter', 'status-filter', 'rating-filter', 'sort-filter'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.addEventListener('input', () => this.renderCurrentView());
+                el.addEventListener('change', () => this.renderCurrentView());
+            }
+        });
     },
 
     renderTable: function() {
