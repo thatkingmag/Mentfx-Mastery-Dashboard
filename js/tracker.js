@@ -3,8 +3,19 @@
  */
 window.MentfxTracker = {
     renderCurrentView: function() {
-        const mode = window.MentfxState.currentViewMode;
+        const S = window.MentfxState;
+        const mode = S.currentViewMode;
         
+        // Update Progress Bar
+        const total = S.appData.length;
+        const completed = S.appData.filter(w => w.status === 'Completed').length;
+        const pct = total ? Math.round((completed / total) * 100) : 0;
+        
+        const pctText = document.getElementById('webinar-progress-text');
+        const pctBar = document.getElementById('webinar-progress-bar');
+        if (pctText) pctText.textContent = `${pct}%`;
+        if (pctBar) pctBar.style.width = `${pct}%`;
+
         // Update view UI
         document.querySelectorAll('.tracker-mode').forEach(m => m.classList.remove('active'));
         const activeMode = document.getElementById(`${mode}-mode`);

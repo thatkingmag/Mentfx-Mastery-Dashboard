@@ -26,6 +26,16 @@ window.MentfxUI = {
         const container = document.getElementById('app-grid');
         if (!container) return;
         
+        // Update Progress Bar
+        const total = S.appApplicationData.length;
+        const completed = S.appApplicationData.filter(a => a.status === 'Completed').length;
+        const pct = total ? Math.round((completed / total) * 100) : 0;
+        
+        const pctText = document.getElementById('app-progress-text');
+        const pctBar = document.getElementById('app-progress-bar');
+        if (pctText) pctText.textContent = `${pct}%`;
+        if (pctBar) pctBar.style.width = `${pct}%`;
+
         container.innerHTML = '';
         S.appApplicationData.forEach(item => {
             const card = document.createElement('div');

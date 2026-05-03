@@ -3,6 +3,19 @@
  */
 window.MentfxMastery = {
     renderMastery: function() {
+        const S = window.MentfxState;
+        
+        // Update Progress Bar
+        const lessons = (window.masteryData || []).flatMap(m => m.lessons);
+        const total = lessons.length;
+        const completed = lessons.filter(l => S.masteryProgress[l.id]?.status === 'Completed').length;
+        const pct = total ? Math.round((completed / total) * 100) : 0;
+        
+        const pctText = document.getElementById('mastery-progress-text');
+        const pctBar = document.getElementById('mastery-progress-bar');
+        if (pctText) pctText.textContent = `${pct}%`;
+        if (pctBar) pctBar.style.width = `${pct}%`;
+
         const mode = window.MentfxState.currentMasteryViewMode;
         if (mode === 'grid') this.renderMasteryGrid();
         else this.renderMasteryList();
