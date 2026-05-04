@@ -2588,5 +2588,15 @@ window.webinarData = [
         "notes": "",
         "keyTakeaways": "",
         "rating": 0
+    },
+    {
+        "id": "mastery-webinar-fzbk2yl_kuy",
+        "name": "Mastery Webinar FzbK2yL_KuY",
+        "link": "https://youtu.be/FzbK2yL_KuY",
+        "monthGroup": "May 2026",
+        "status": "Not Started",
+        "notes": "",
+        "keyTakeaways": "",
+        "rating": 0
     }
 ];

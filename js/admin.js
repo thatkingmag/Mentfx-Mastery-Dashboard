@@ -175,7 +175,14 @@ window.MentfxAdmin = {
         document.getElementById('admin-item-group').value = '';
         
         if (category === 'application') window.MentfxUI.renderApplication();
-        else window.MentfxTracker?.renderCurrentView();
+        else {
+            window.MentfxTracker?.renderCurrentView();
+            // Refresh manage list if we're on that tab
+            if (document.getElementById('admin-section-manage').classList.contains('active')) {
+                this.renderAdminManageList();
+            }
+        }
+        window.updateDashboard?.();
     },
 
     deleteAdminItem: function(id, type) {
