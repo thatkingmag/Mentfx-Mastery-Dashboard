@@ -156,6 +156,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!item) return;
 
         document.getElementById('modal-title').textContent = `Update ${type.charAt(0).toUpperCase() + type.slice(1)}`;
+        document.getElementById('modal-name').value = item.name || '';
+        document.getElementById('modal-link').value = item.link || '';
         document.getElementById('modal-status').value = item.status || 'Not Started';
         document.getElementById('modal-understanding').value = item.understanding || 0;
         document.getElementById('modal-understanding-val').textContent = item.understanding || 0;
@@ -179,14 +181,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.saveChanges = () => {
         const S = window.MentfxState;
+        const name = document.getElementById('modal-name').value.trim();
+        const link = document.getElementById('modal-link').value.trim();
         const status = document.getElementById('modal-status').value;
         const understanding = parseInt(document.getElementById('modal-understanding').value);
         const notes = document.getElementById('modal-notes').value;
         const tags = document.getElementById('modal-tags').value.split(',').map(t => t.trim()).filter(t => t);
         
+        if (!name) return window.MentfxUtils?.showToast('Name is required', 'error');
+
         if (currentEditType === 'webinar') {
             const item = S.appData.find(w => w.id === currentEditId);
             if (item) {
+                item.name = name;
+                item.link = link;
                 item.status = status;
                 item.understanding = understanding;
                 item.notes = notes;
@@ -195,14 +203,24 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (currentEditType === 'application') {
             const item = S.appApplicationData.find(a => a.id === currentEditId);
             if (item) {
+                item.name = name;
+                item.link = link;
                 item.status = status;
                 item.understanding = understanding;
                 item.notes = notes;
                 item.tags = tags;
             }
         } else if (currentEditType === 'mastery') {
+            const lesson = (window.masteryData || []).flatMap(m => m.lessons).find(l => l.id === currentEditId);
+            if (lesson) {
+                lesson.name = name;
+                lesson.link = link;
+            }
+
             S.masteryProgress[currentEditId] = {
                 ...S.masteryProgress[currentEditId],
+                name,
+                link,
                 status,
                 understanding,
                 notes,
@@ -211,9 +229,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         S.saveLocalData();
+        if (window.MentfxAdmin) {
+            window.MentfxAdmin.saveToServer();
+            window.MentfxAdmin.syncToProjectFiles();
+        }
         UI.renderApplication();
         T.renderCurrentView();
         M.renderMastery();
+        window.renderAdminManageList?.();
         window.closeModal();
         U.showToast('Changes saved successfully', 'success');
         window.updateDashboard?.();

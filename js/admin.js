@@ -18,15 +18,66 @@ window.MentfxAdmin = {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
             });
-            if (resp.ok) window.showToast('Data synced to local server', 'success');
+            if (resp.ok) console.log('Data synced to local userData.json');
         } catch (e) {
             console.warn('Local server not available for sync');
         }
     },
 
+    /**
+     * Permanent Sync: Writes current state back to the source .js files
+     */
+    syncToProjectFiles: async function() {
+        if (window.location.port !== '8000') return;
+        const S = window.MentfxState;
+        
+        const filesToSync = [
+            { name: 'data.js', variable: 'webinarData', data: S.appData },
+            { name: 'applicationData.js', variable: 'applicationData', data: S.appApplicationData },
+            { name: 'masteryData.js', variable: 'masteryData', data: window.masteryData }
+        ];
+
+        window.showToast('Syncing to project files...', 'info');
+
+        try {
+            for (const file of filesToSync) {
+                const content = `window.${file.variable} = ${JSON.stringify(file.data, null, 4)};`;
+                await fetch('/api/admin/save-file', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        fileName: file.name,
+                        content: content
+                    })
+                });
+            }
+            window.showToast('Project files updated successfully!', 'success');
+        } catch (e) {
+            console.error('Project sync failed:', e);
+            window.showToast('Failed to sync to project files.', 'error');
+        }
+    },
+
     pushToGitHub: async function() {
+        if (window.location.port !== '8000') return window.showToast('GitHub push only available on local server (port 8000)', 'warning');
+        
+        const confirmPush = confirm('This will push all your current local files to your live GitHub repository. Continue?');
+        if (!confirmPush) return;
+
         window.showToast('Initiating GitHub Sync...', 'info');
-        // logic for triggering the local bat or server-side git push
+
+        try {
+            const resp = await fetch('/api/admin/push', { method: 'POST' });
+            if (resp.ok) {
+                window.showToast('Successfully pushed to GitHub!', 'success');
+            } else {
+                const err = await resp.text();
+                throw new Error(err);
+            }
+        } catch (e) {
+            console.error('GitHub push failed:', e);
+            window.showToast('GitHub Push failed. Check your local console.', 'error');
+        }
     },
 
     resetAdminForm: function() {
@@ -56,17 +107,16 @@ window.MentfxAdmin = {
             });
         });
 
-        // Search filter in manage list
+        // Filtering and search in manage list
         const searchInput = document.getElementById('admin-manage-search');
-        if (searchInput) {
-            searchInput.addEventListener('input', (e) => {
-                const query = e.target.value.toLowerCase();
-                document.querySelectorAll('.admin-item').forEach(item => {
-                    const text = item.textContent.toLowerCase();
-                    item.style.display = text.includes(query) ? 'flex' : 'none';
-                });
-            });
-        }
+        const typeFilter = document.getElementById('admin-manage-type');
+        const sortFilter = document.getElementById('admin-manage-sort');
+        
+        const triggerRefresh = () => this.renderAdminManageList();
+        
+        if (searchInput) searchInput.addEventListener('input', triggerRefresh);
+        if (typeFilter) typeFilter.addEventListener('change', triggerRefresh);
+        if (sortFilter) sortFilter.addEventListener('change', triggerRefresh);
     },
 
     loadSettings: function() {
@@ -100,37 +150,55 @@ window.MentfxAdmin = {
         const S = window.MentfxState;
         const container = document.getElementById('admin-manage-list');
         if (!container) return;
-        
         container.innerHTML = '';
-        const allItems = [
-            ...S.appData.map(i => ({ ...i, type: 'webinar' })),
-            ...S.appApplicationData.map(i => ({ ...i, type: 'application' }))
+        
+        const type = document.getElementById('admin-manage-type')?.value || 'all';
+        const sort = document.getElementById('admin-manage-sort')?.value || 'newest';
+        const query = document.getElementById('admin-manage-search')?.value.toLowerCase() || '';
+
+        let allItems = [
+            ...S.appData.map((i, idx) => ({ ...i, type: 'webinar', globalIndex: idx })),
+            ...S.appApplicationData.map((i, idx) => ({ ...i, type: 'application', globalIndex: idx + 1000 }))
         ];
         
-        // Add mastery lessons
         (window.masteryData || []).forEach(mod => {
-            mod.lessons.forEach(lesson => {
-                allItems.push({ ...lesson, type: 'mastery', module: mod.module });
+            mod.lessons.forEach((lesson, idx) => {
+                allItems.push({ ...lesson, type: 'mastery', module: mod.module, globalIndex: idx + (mod.module * 100) + 2000 });
             });
         });
 
-        if (allItems.length === 0) {
-            container.innerHTML = '<div class="empty-state">No items found to manage.</div>';
+        // Filter
+        let filtered = allItems.filter(item => {
+            const matchesType = type === 'all' || item.type === type;
+            const matchesSearch = (item.name || '').toLowerCase().includes(query) || (item.id || '').toLowerCase().includes(query);
+            return matchesType && matchesSearch;
+        });
+
+        // Sort
+        filtered.sort((a, b) => {
+            if (sort === 'az') return (a.name || '').localeCompare(b.name || '');
+            if (sort === 'za') return (b.name || '').localeCompare(a.name || '');
+            if (sort === 'oldest') return a.globalIndex - b.globalIndex;
+            return b.globalIndex - a.globalIndex; // newest
+        });
+
+        if (filtered.length === 0) {
+            container.innerHTML = `<div class="empty-state">No items match your filters.</div>`;
             return;
         }
 
-        allItems.sort((a, b) => (a.name || '').localeCompare(b.name || '')).forEach(item => {
+        filtered.forEach(item => {
             const div = document.createElement('div');
             div.className = 'admin-item';
             div.innerHTML = `
                 <div class="admin-item-info">
                     <span class="admin-badge badge-${item.type}">${item.type}</span>
                     <h4>${item.name}</h4>
-                    <p style="font-size: 0.7rem; color: var(--text-muted);">${item.id}</p>
+                    <p style="font-size: 0.7rem; color: var(--text-muted);">${item.id} ${item.module !== undefined ? `• Mod ${item.module}` : ''}</p>
                 </div>
                 <div class="admin-item-actions">
-                    <button class="btn-icon" onclick="openEditModal('${item.id}', '${item.type}')">✎</button>
-                    <button class="btn-icon delete" onclick="deleteAdminItem('${item.id}', '${item.type}')">🗑</button>
+                    <button class="btn-icon" title="Edit" onclick="openEditModal('${item.id}', '${item.type}')">✎</button>
+                    <button class="btn-icon delete" title="Delete" onclick="deleteAdminItem('${item.id}', '${item.type}')">🗑</button>
                 </div>
             `;
             container.appendChild(div);
@@ -168,6 +236,7 @@ window.MentfxAdmin = {
         
         S.saveLocalData();
         this.saveToServer();
+        this.syncToProjectFiles();
         window.showToast(`New ${category} added successfully!`, 'success');
         
         document.getElementById('admin-item-name').value = '';
@@ -186,16 +255,56 @@ window.MentfxAdmin = {
     },
 
     deleteAdminItem: function(id, type) {
-        if (!confirm(`Are you sure you want to delete this ${type}?`)) return;
-        const S = window.MentfxState;
+        const modal = document.getElementById('confirm-modal');
+        const title = document.getElementById('confirm-title');
+        const message = document.getElementById('confirm-message');
+        const actionBtn = document.getElementById('confirm-action-btn');
         
-        if (type === 'webinar') S.appData = S.appData.filter(i => i.id !== id);
-        else if (type === 'application') S.appApplicationData = S.appApplicationData.filter(i => i.id !== id);
+        title.textContent = `Delete ${type.charAt(0).toUpperCase() + type.slice(1)}?`;
+        message.textContent = `Are you sure you want to remove "${id}"? This will permanently delete it from the project files.`;
         
-        S.saveLocalData();
-        this.saveToServer();
-        this.renderAdminManageList();
-        window.showToast(`${type} deleted`, 'info');
+        // Setup action button
+        actionBtn.onclick = async () => {
+            const S = window.MentfxState;
+            
+            if (type === 'webinar') {
+                S.appData = S.appData.filter(i => i.id !== id);
+            } else if (type === 'application') {
+                S.appApplicationData = S.appApplicationData.filter(i => i.id !== id);
+            } else if (type === 'mastery') {
+                // Remove from global definition
+                (window.masteryData || []).forEach(mod => {
+                    mod.lessons = mod.lessons.filter(l => l.id !== id);
+                });
+                // Remove from user progress
+                delete S.masteryProgress[id];
+            }
+            
+            S.saveLocalData();
+            this.saveToServer();
+            await this.syncToProjectFiles();
+            this.renderAdminManageList();
+            
+            // Refresh appropriate views
+            if (type === 'webinar') window.MentfxTracker?.renderCurrentView();
+            if (type === 'mastery') window.MentfxMastery?.renderMastery();
+            if (type === 'application') window.MentfxUI?.renderApplication();
+            
+            window.showToast(`${type} deleted`, 'info');
+            window.updateDashboard?.();
+            window.closeConfirmModal();
+        };
+
+        modal.style.display = 'flex';
+        setTimeout(() => modal.classList.add('active'), 10);
+    }
+};
+
+window.closeConfirmModal = () => {
+    const modal = document.getElementById('confirm-modal');
+    if (modal) {
+        modal.classList.remove('active');
+        setTimeout(() => modal.style.display = 'none', 300);
     }
 };
 
@@ -207,6 +316,7 @@ window.deleteAdminItem = window.MentfxAdmin.deleteAdminItem.bind(window.MentfxAd
 window.handleAdminPush = window.MentfxAdmin.pushToGitHub;
 window.saveAdminSettings = window.MentfxAdmin.saveSettings.bind(window.MentfxAdmin);
 window.resetAdminForm = window.MentfxAdmin.resetAdminForm.bind(window.MentfxAdmin);
+window.closeConfirmModal = window.closeConfirmModal;
 
 // Auto-init
 document.addEventListener('DOMContentLoaded', () => window.MentfxAdmin.init());
