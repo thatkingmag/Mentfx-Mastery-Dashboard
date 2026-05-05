@@ -1373,11 +1373,14 @@ input[type=range]::-webkit-slider-runnable-track {
     .table-container { overflow-x: hidden !important; margin-top: 1rem; width: 100%; }
     .glass-table { min-width: 0 !important; width: 100% !important; table-layout: fixed; }
     
-    /* Hide non-essential table columns on mobile */
+    /* Selective column hiding on mobile - Prioritize the 'Watch' button */
     .glass-table th:nth-child(3), .glass-table td:nth-child(3), /* Month Group */
     .glass-table th:nth-child(5), .glass-table td:nth-child(5), /* Rating */
     .glass-table th:nth-child(7), .glass-table td:nth-child(7)  /* Update Button */
     { display: none !important; }
+    
+    /* Ensure the Watch column (Col 6) is ALWAYS visible */
+    .glass-table th:nth-child(6), .glass-table td:nth-child(6) { display: table-cell !important; }
 
     .glass-table td { font-size: 0.8rem; padding: 0.75rem 0.5rem !important; overflow: hidden; text-overflow: ellipsis; }
     .glass-table th { font-size: 0.75rem; padding: 0.75rem 0.5rem !important; }
@@ -1418,6 +1421,23 @@ input[type=range]::-webkit-slider-runnable-track {
     
     .metric-value {
         font-size: 2.2rem !important;
+    }
+
+    /* Webinar Card Footer Fix for Mobile */
+    .card-footer {
+        flex-direction: row;
+        justify-content: space-between;
+        gap: 0.5rem;
+    }
+    
+    .btn-action {
+        flex: 1;
+        padding: 0.6rem 0.5rem !important;
+        font-size: 0.8rem !important;
+        text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 }
 
