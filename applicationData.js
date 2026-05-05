@@ -4,45 +4,58 @@ window.applicationData = [
         "name": "Application of Material 1",
         "link": "https://youtu.be/BUilx_P30vE",
         "category": "Application",
-        "status": "Not Started",
+        "status": "Completed",
         "notes": "",
-        "rating": 0
+        "rating": 5,
+        "tags": [
+            "System"
+        ]
     },
     {
         "id": "App 2",
         "name": "Application of Material 2",
         "link": "https://youtu.be/V4XQTBUTeQ4",
         "category": "Application",
-        "status": "Not Started",
+        "status": "Completed",
         "notes": "",
-        "rating": 0
+        "rating": 5,
+        "tags": [
+            "System"
+        ]
     },
     {
         "id": "App 3",
         "name": "Application of Material 3",
         "link": "https://youtu.be/d0j1ws214Pg",
         "category": "Application",
-        "status": "Not Started",
+        "status": "Completed",
         "notes": "",
-        "rating": 0
+        "rating": 5,
+        "tags": [
+            "System"
+        ]
     },
     {
         "id": "App 4",
         "name": "Application of Material 4",
         "link": "https://youtu.be/NqxFEWAszTY",
         "category": "Application",
-        "status": "Not Started",
+        "status": "Completed",
         "notes": "",
-        "rating": 0
+        "rating": 5,
+        "tags": []
     },
     {
         "id": "App 5",
         "name": "Application of Material 5",
         "link": "https://youtu.be/3OoV8yS6bCs",
         "category": "Application",
-        "status": "Not Started",
+        "status": "In Progress",
         "notes": "",
-        "rating": 0
+        "rating": 1,
+        "tags": [
+            "System"
+        ]
     },
     {
         "id": "App 6",
