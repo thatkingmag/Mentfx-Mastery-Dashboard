@@ -123,7 +123,7 @@ window.MentfxTracker = {
         container.innerHTML = '';
         const searchFilter = document.getElementById('search-filter');
         const statusFilter = document.getElementById('status-filter');
-        const sortElement = document.getElementById('sort-by');
+        const sortElement = document.getElementById('sort-filter');
         const sortBy = sortElement ? sortElement.value : 'oldest';
         
         const term = searchFilter.value.toLowerCase();
