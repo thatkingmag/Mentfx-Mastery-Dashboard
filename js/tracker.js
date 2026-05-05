@@ -16,6 +16,12 @@ window.MentfxTracker = {
         if (pctText) pctText.textContent = `${pct}%`;
         if (pctBar) pctBar.style.width = `${pct}%`;
 
+        // Mobile restriction: No list mode on mobile
+        if (window.innerWidth <= 768 && mode === 'list') {
+            mode = 'grid';
+            S.currentViewMode = 'grid';
+        }
+
         // Update view UI
         document.querySelectorAll('.tracker-mode').forEach(m => m.classList.remove('active'));
         const activeMode = document.getElementById(`${mode}-mode`);
@@ -193,7 +199,20 @@ window.MentfxTracker = {
                 months[month].forEach(wb => {
                     const item = document.createElement('div');
                     item.className = 'calendar-item';
-                    item.innerHTML = `<div class="item-status-dot status-${wb.status.toLowerCase().replace(' ', '-')}"></div><span>${wb.name}</span>`;
+                    
+                    const watchHtml = wb.link ? `
+                        <a href="${wb.link}" target="_blank" class="cal-watch-btn" title="Watch Webinar" onclick="event.stopPropagation()">
+                            <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 16 16" height="1.2em" width="1.2em" xmlns="http://www.w3.org/2000/svg"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"></path><path d="M6.271 5.055a.5.5 0 0 1 .52.038l3.5 2.5a.5.5 0 0 1 0 .814l-3.5 2.5A.5.5 0 0 1 6 10.5v-5a.5.5 0 0 1 .271-.445z"></path></svg>
+                        </a>
+                    ` : '';
+
+                    item.innerHTML = `
+                        <div style="display:flex; align-items:center; gap:0.5rem; flex:1; overflow:hidden;">
+                            <div class="item-status-dot status-${wb.status.toLowerCase().replace(' ', '-')}"></div>
+                            <span class="item-name" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${wb.name}</span>
+                        </div>
+                        ${watchHtml}
+                    `;
                     item.onclick = () => window.openEditModal(wb.id, 'webinar');
                     list.appendChild(item);
                 });

@@ -566,6 +566,12 @@ header p {
     color: white;
 }
 
+@media (max-width: 768px) {
+    .view-btn[data-mode="list"] {
+        display: none !important;
+    }
+}
+
 .tracker-mode {
     display: none;
 }
@@ -912,11 +918,13 @@ input[type=range]::-webkit-slider-runnable-track {
     display: flex;
     align-items: center;
     justify-content: center;
+    margin-left: 0.5rem;
+    flex-shrink: 0;
 }
 
 .cal-watch-btn:hover {
     color: var(--primary);
-    transform: scale(1.2);
+    transform: scale(1.15);
 }
 
 .dot-not-started { background: #94a3b8; }
