@@ -123,13 +123,21 @@ window.MentfxTracker = {
         container.innerHTML = '';
         const searchFilter = document.getElementById('search-filter');
         const statusFilter = document.getElementById('status-filter');
+        const sortElement = document.getElementById('sort-filter');
+        const sortBy = sortElement ? sortElement.value : 'oldest';
+        
         const term = searchFilter.value.toLowerCase();
         const stat = statusFilter.value;
 
-        S.appData.forEach(wb => {
-            if (stat !== 'All' && wb.status !== stat) return;
-            if (term && !wb.name.toLowerCase().includes(term)) return;
+        let filtered = S.appData.filter(wb => {
+            if (stat !== 'All' && wb.status !== stat) return false;
+            if (term && !wb.name.toLowerCase().includes(term)) return false;
+            return true;
+        });
 
+        filtered = this.getSortedData(filtered, sortBy);
+
+        filtered.forEach(wb => {
             const card = document.createElement('div');
             const isSelected = S.selectedItems.has(wb.id);
             card.className = `webinar-card glass ${isSelected ? 'selected' : ''}`;

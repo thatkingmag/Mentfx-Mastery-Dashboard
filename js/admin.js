@@ -59,24 +59,74 @@ window.MentfxAdmin = {
     },
 
     pushToGitHub: async function() {
-        if (window.location.port !== '8000') return window.showToast('GitHub push only available on local server (port 8000)', 'warning');
+        const token = document.getElementById('admin-github-token')?.value || localStorage.getItem('mentfxGithubToken');
+        if (!token) return window.showToast('Please enter your GitHub Token in Settings first!', 'warning');
         
-        const confirmPush = confirm('This will push all your current local files to your live GitHub repository. Continue?');
+        const owner = 'thatkingmag';
+        const repo = 'Mentfx-Mastery-Dashboard';
+        const S = window.MentfxState;
+
+        const confirmPush = confirm('This will push all changes to your LIVE GitHub site. Continue?');
         if (!confirmPush) return;
 
-        window.showToast('Initiating GitHub Sync...', 'info');
+        window.showToast('Initiating GitHub API Sync...', 'info');
+
+        const filesToSync = [
+            { path: 'index.html', content: null, localPath: 'index.html' },
+            { path: 'styles.css', content: null, localPath: 'styles.css' },
+            { path: 'data.js', variable: 'webinarData', data: S.appData },
+            { path: 'applicationData.js', variable: 'applicationData', data: S.appApplicationData },
+            { path: 'masteryData.js', variable: 'masteryData', data: window.masteryData },
+            { path: 'js/tracker.js', content: null, localPath: 'js/tracker.js' },
+            { path: 'js/admin.js', content: null, localPath: 'js/admin.js' },
+            { path: 'js/ui.js', content: null, localPath: 'js/ui.js' },
+            { path: 'app.js', content: null, localPath: 'app.js' }
+        ];
 
         try {
-            const resp = await fetch('/api/admin/push', { method: 'POST' });
-            if (resp.ok) {
-                window.showToast('Successfully pushed to GitHub!', 'success');
-            } else {
-                const err = await resp.text();
-                throw new Error(err);
+            for (const file of filesToSync) {
+                let content;
+                if (file.variable) {
+                    content = `window.${file.variable} = ${JSON.stringify(file.data, null, 4)};`;
+                } else {
+                    // Fetch local file content via server
+                    const resp = await fetch(`/${file.localPath}`);
+                    if (!resp.ok) throw new Error(`Failed to read local ${file.localPath}`);
+                    content = await resp.text();
+                }
+                
+                // 1. Get current file SHA
+                const getResp = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${file.path}`, {
+                    headers: { 'Authorization': `token ${token}` }
+                });
+                
+                if (!getResp.ok) throw new Error(`Failed to get SHA for ${file.path}`);
+                const fileData = await getResp.json();
+                const sha = fileData.sha;
+
+                // 2. Update file
+                const putResp = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${file.path}`, {
+                    method: 'PUT',
+                    headers: { 
+                        'Authorization': `token ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message: `Admin Update: Syncing ${file.path}`,
+                        content: btoa(unescape(encodeURIComponent(content))),
+                        sha: sha
+                    })
+                });
+
+                if (!putResp.ok) {
+                    const error = await putResp.json();
+                    throw new Error(error.message || `Failed to update ${file.path}`);
+                }
             }
+            window.showToast('Successfully deployed to GitHub Pages!', 'success');
         } catch (e) {
-            console.error('GitHub push failed:', e);
-            window.showToast('GitHub Push failed. Check your local console.', 'error');
+            console.error('GitHub Sync Error:', e);
+            window.showToast(`Sync Error: ${e.message}`, 'error');
         }
     },
 
@@ -106,6 +156,18 @@ window.MentfxAdmin = {
                 if (target === 'manage') this.renderAdminManageList();
             });
         });
+
+        // Discord HTML Import
+        const importBtn = document.getElementById('btn-import-discord');
+        if (importBtn) {
+            importBtn.addEventListener('click', () => {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = '.html';
+                input.onchange = (e) => this.processDiscordHTML(e.target.files[0]);
+                input.click();
+            });
+        }
 
         // Filtering and search in manage list
         const searchInput = document.getElementById('admin-manage-search');
@@ -198,7 +260,7 @@ window.MentfxAdmin = {
                 </div>
                 <div class="admin-item-actions">
                     <button class="btn-icon" title="Edit" onclick="openEditModal('${item.id}', '${item.type}')">✎</button>
-                    <button class="btn-icon delete" title="Delete" onclick="deleteAdminItem('${item.id}', '${item.type}')">🗑</button>
+                    <button class="btn-icon delete" title="Delete" onclick="deleteAdminItem('${item.id}', '${item.type}', '${(item.name || "").replace(/'/g, "\\'")}')">🗑</button>
                 </div>
             `;
             container.appendChild(div);
@@ -254,14 +316,48 @@ window.MentfxAdmin = {
         window.updateDashboard?.();
     },
 
-    deleteAdminItem: function(id, type) {
+    processDiscordHTML: async function(file) {
+        if (!file) return;
+        const text = await file.text();
+        const S = window.MentfxState;
+        let updateCount = 0;
+
+        // Regex to match "Webinar X: URL"
+        const regex = /Webinar\s+(\d+):\s+<a\s+href="([^"]+)">/gi;
+        let match;
+
+        while ((match = regex.exec(text)) !== null) {
+            const num = match[1];
+            const url = match[2];
+            const webinarId = `Webinar ${num}`;
+            
+            const webinar = S.appData.find(w => w.id === webinarId || w.name === webinarId);
+            if (webinar && (!webinar.link || webinar.link === "")) {
+                webinar.link = url;
+                updateCount++;
+            }
+        }
+
+        if (updateCount > 0) {
+            S.saveLocalData();
+            this.saveToServer();
+            this.syncToProjectFiles();
+            this.renderAdminManageList();
+            window.showToast(`Success! Updated ${updateCount} webinar links.`, 'success');
+        } else {
+            window.showToast('No new webinar links found to update.', 'info');
+        }
+    },
+
+    deleteAdminItem: function(id, type, name = '') {
         const modal = document.getElementById('confirm-modal');
         const title = document.getElementById('confirm-title');
         const message = document.getElementById('confirm-message');
         const actionBtn = document.getElementById('confirm-action-btn');
         
+        const displayName = name || id;
         title.textContent = `Delete ${type.charAt(0).toUpperCase() + type.slice(1)}?`;
-        message.textContent = `Are you sure you want to remove "${id}"? This will permanently delete it from the project files.`;
+        message.textContent = `Are you sure you want to remove "${displayName}"? This will permanently delete it from the project files.`;
         
         // Setup action button
         actionBtn.onclick = async () => {
