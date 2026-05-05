@@ -994,10 +994,10 @@ window.webinarData = [
         "name": "Webinar 100",
         "link": "https://www.youtube.com/watch?v=DmkKpciwfkU",
         "monthGroup": "May 2023",
-        "status": "Not Started",
-        "notes": "",
+        "status": "In Progress",
+        "notes": "Cjfjf",
         "keyTakeaways": "",
-        "rating": 0
+        "rating": 2
     },
     {
         "id": "Webinar 101",
@@ -2552,36 +2552,18 @@ window.webinarData = [
     {
         "id": "Webinar 255",
         "name": "Webinar 255",
-        "link": "",
+        "link": "https://youtu.be/FzbK2yL_KuY",
         "monthGroup": "May 2026",
         "status": "Not Started",
         "notes": "",
         "keyTakeaways": "",
-        "rating": 0
+        "rating": 0,
+        "understanding": 0,
+        "tags": []
     },
     {
         "id": "Webinar 256",
         "name": "Webinar 256",
-        "link": "",
-        "monthGroup": "May 2026",
-        "status": "Not Started",
-        "notes": "",
-        "keyTakeaways": "",
-        "rating": 0
-    },
-    {
-        "id": "Webinar 257",
-        "name": "Webinar 257",
-        "link": "",
-        "monthGroup": "May 2026",
-        "status": "Not Started",
-        "notes": "",
-        "keyTakeaways": "",
-        "rating": 0
-    },
-    {
-        "id": "Webinar 258",
-        "name": "Webinar 258",
         "link": "",
         "monthGroup": "May 2026",
         "status": "Not Started",
