@@ -206,9 +206,12 @@ window.MentfxTracker = {
                         </a>
                     ` : '';
 
+                    const isDone = wb.status === 'Completed';
                     item.innerHTML = `
                         <div style="display:flex; align-items:center; gap:0.5rem; flex:1; overflow:hidden;">
-                            <div class="item-status-dot status-${wb.status.toLowerCase().replace(' ', '-')}"></div>
+                            <button class="cal-done-btn ${isDone ? 'done' : ''}" onclick="toggleItemComplete('${wb.id}', 'webinar', event)">
+                                ${isDone ? '✓' : ''}
+                            </button>
                             <span class="item-name" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${wb.name}</span>
                         </div>
                         ${watchHtml}

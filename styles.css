@@ -1381,17 +1381,28 @@ input[type=range]::-webkit-slider-runnable-track {
     .table-container { overflow-x: hidden !important; margin-top: 1rem; width: 100%; }
     .glass-table { min-width: 0 !important; width: 100% !important; table-layout: fixed; }
     
-    /* Selective column hiding on mobile - Prioritize the 'Watch' button */
-    .glass-table th:nth-child(3), .glass-table td:nth-child(3), /* Month Group */
-    .glass-table th:nth-child(5), .glass-table td:nth-child(5), /* Rating */
-    .glass-table th:nth-child(7), .glass-table td:nth-child(7)  /* Update Button */
+    /* Selective column hiding on mobile - Prioritize Name, Status, and Watch */
+    .glass-table th:nth-child(4), .glass-table td:nth-child(4), /* Month Group */
+    .glass-table th:nth-child(6), .glass-table td:nth-child(6), /* Rating */
+    .glass-table th:nth-child(8), .glass-table td:nth-child(8)  /* Update Button */
     { display: none !important; }
     
-    /* Ensure the Watch column (Col 6) is ALWAYS visible */
-    .glass-table th:nth-child(6), .glass-table td:nth-child(6) { display: table-cell !important; }
+    /* Ensure the Watch column (Col 7) is ALWAYS visible */
+    .glass-table th:nth-child(7), .glass-table td:nth-child(7) { display: table-cell !important; }
 
     .glass-table td { font-size: 0.8rem; padding: 0.75rem 0.5rem !important; overflow: hidden; text-overflow: ellipsis; }
     .glass-table th { font-size: 0.75rem; padding: 0.75rem 0.5rem !important; }
+
+    /* Increase hit area for complete button on mobile */
+    .btn-quick-done {
+        width: 42px !important;
+        height: 42px !important;
+        min-width: 42px !important;
+        font-size: 1.1rem !important;
+        border-width: 2px !important;
+        background: rgba(16, 185, 129, 0.08);
+        border-color: rgba(16, 185, 129, 0.5);
+    }
 }
 
 @media screen and (max-width: 640px) {
@@ -1729,6 +1740,35 @@ input[type=range]::-webkit-slider-runnable-track {
     transition: color 0.2s;
 }
 .next-up-card:hover .next-up-cta { color: white; }
+
+/* Calendar Quick Done button */
+.cal-done-btn {
+    margin-right: 0.5rem;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 2px solid rgba(16, 185, 129, 0.3);
+    background: transparent;
+    color: rgba(16, 185, 129, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.cal-done-btn.done {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+}
+
+@media (max-width: 768px) {
+    .cal-done-btn {
+        width: 36px;
+        height: 36px;
+    }
+}
 
 /* ===== QUICK COMPLETE BUTTON ===== */
 .btn-quick-done {
