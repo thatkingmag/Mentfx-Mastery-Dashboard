@@ -591,7 +591,10 @@ header p {
     padding: 1.5rem;
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 1.25rem;
+    position: relative;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
     transition: transform 0.2s;
 }
 
@@ -2006,10 +2009,17 @@ body.bulk-edit-mode .bulk-col {
 }
 
 .card-bulk-check input {
-    width: 18px;
-    height: 18px;
+    width: 24px;
+    height: 24px;
     cursor: pointer;
     accent-color: var(--accent);
+}
+
+@media (max-width: 768px) {
+    .card-bulk-check input {
+        width: 30px;
+        height: 30px;
+    }
 }
 
 .webinar-card.selected {

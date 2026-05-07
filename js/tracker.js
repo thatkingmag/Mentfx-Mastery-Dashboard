@@ -4,7 +4,7 @@
 window.MentfxTracker = {
     renderCurrentView: function() {
         const S = window.MentfxState;
-        const mode = S.currentViewMode;
+        let mode = S.currentViewMode;
         
         // Update Progress Bar
         const total = S.appData.length;
@@ -148,6 +148,11 @@ window.MentfxTracker = {
             const isSelected = S.selectedItems.has(wb.id);
             card.className = `webinar-card glass ${isSelected ? 'selected' : ''}`;
             
+            if (S.isBulkEditMode) {
+                card.onclick = () => window.toggleSelectItem(wb.id);
+                card.style.cursor = 'pointer';
+            }
+            
             const isDone = wb.status === 'Completed';
             const bulkCheckHtml = S.isBulkEditMode ? `<div class="card-bulk-check"><input type="checkbox" ${isSelected ? 'checked' : ''} onclick="toggleSelectItem('${wb.id}')"></div>` : '';
 
@@ -227,3 +232,88 @@ window.MentfxTracker = {
 
 window.renderCurrentView = () => window.MentfxTracker.renderCurrentView();
 window.setTrackerView = (mode) => window.MentfxTracker.setTrackerView(mode);
+
+// ===== Bulk Edit Logic =====
+
+window.toggleBulkEdit = () => {
+    const S = window.MentfxState;
+    S.isBulkEditMode = !S.isBulkEditMode;
+    if (!S.isBulkEditMode) S.selectedItems.clear();
+    
+    const toolbar = document.getElementById('bulk-toolbar');
+    const btn = document.getElementById('bulk-edit-btn');
+    if (toolbar) toolbar.classList.toggle('active', S.isBulkEditMode);
+    if (btn) btn.classList.toggle('active', S.isBulkEditMode);
+    
+    window.MentfxTracker.renderCurrentView();
+    window.updateBulkCount();
+};
+
+window.toggleSelectItem = (id) => {
+    const S = window.MentfxState;
+    if (S.selectedItems.has(id)) S.selectedItems.delete(id);
+    else S.selectedItems.add(id);
+    
+    window.MentfxTracker.renderCurrentView();
+    window.updateBulkCount();
+};
+
+window.toggleSelectAll = (event) => {
+    const S = window.MentfxState;
+    const isChecked = event.target.checked;
+    
+    if (isChecked) {
+        // Select all currently visible (filtered) items
+        const filtered = window.MentfxTracker.getFilteredData();
+        filtered.forEach(wb => S.selectedItems.add(wb.id));
+    } else {
+        S.selectedItems.clear();
+    }
+    
+    window.MentfxTracker.renderCurrentView();
+    window.updateBulkCount();
+};
+
+window.updateBulkCount = () => {
+    const count = window.MentfxState.selectedItems.size;
+    const el = document.getElementById('selected-count');
+    if (el) el.textContent = count;
+};
+
+window.bulkUpdateStatus = (newStatus) => {
+    const S = window.MentfxState;
+    if (S.selectedItems.size === 0) return window.showToast('No items selected', 'error');
+    
+    let updatedCount = 0;
+    S.appData.forEach(wb => {
+        if (S.selectedItems.has(wb.id)) {
+            const oldStatus = wb.status;
+            wb.status = newStatus;
+            updatedCount++;
+            
+            // Log activity if marking as completed
+            if (newStatus === 'Completed' && oldStatus !== 'Completed') {
+                window.logActivity?.('webinar', wb.name, 'Completed');
+            }
+        }
+    });
+    
+    S.saveLocalData();
+    window.toggleBulkEdit(); // Exit bulk mode
+    window.showToast(`Updated ${updatedCount} items to ${newStatus}`, 'success');
+    window.updateDashboard?.();
+};
+
+window.bulkDelete = () => {
+    const S = window.MentfxState;
+    if (S.selectedItems.size === 0) return window.showToast('No items selected', 'error');
+    
+    if (!confirm(`Are you sure you want to delete ${S.selectedItems.size} items?`)) return;
+    
+    S.appData = S.appData.filter(wb => !S.selectedItems.has(wb.id));
+    
+    S.saveLocalData();
+    window.toggleBulkEdit();
+    window.showToast('Selected items deleted', 'success');
+    window.updateDashboard?.();
+};
