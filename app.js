@@ -122,7 +122,10 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (category === 'webinar') item = S.appData.find(w => w.id === id);
         else if (category === 'application') item = S.appApplicationData.find(a => a.id === id);
-        else if (category === 'mastery') item = S.masteryProgress[id] || { status: 'Not Started' };
+        else if (category === 'mastery') {
+            const lesson = (window.masteryData || []).flatMap(m => m.lessons).find(l => l.id === id);
+            item = { ...(S.masteryProgress[id] || { status: 'Not Started' }), name: lesson?.name || id };
+        }
         
         if (!item) return;
 
@@ -131,6 +134,11 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (category === 'webinar' || category === 'application') item.status = newStatus;
         else S.masteryProgress[id] = { ...item, status: newStatus };
+
+        // Log Activity if completed
+        if (newStatus === 'Completed') {
+            window.logActivity(category, id, item.name || id);
+        }
         
         S.saveLocalData();
         UI.renderApplication();
@@ -190,9 +198,12 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (!name) return window.MentfxUtils?.showToast('Name is required', 'error');
 
+        let statusChangedToCompleted = false;
+
         if (currentEditType === 'webinar') {
             const item = S.appData.find(w => w.id === currentEditId);
             if (item) {
+                if (status === 'Completed' && item.status !== 'Completed') statusChangedToCompleted = true;
                 item.name = name;
                 item.link = link;
                 item.status = status;
@@ -203,6 +214,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (currentEditType === 'application') {
             const item = S.appApplicationData.find(a => a.id === currentEditId);
             if (item) {
+                if (status === 'Completed' && item.status !== 'Completed') statusChangedToCompleted = true;
                 item.name = name;
                 item.link = link;
                 item.status = status;
@@ -217,6 +229,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 lesson.link = link;
             }
 
+            if (status === 'Completed' && (S.masteryProgress[currentEditId]?.status !== 'Completed')) statusChangedToCompleted = true;
+
             S.masteryProgress[currentEditId] = {
                 ...S.masteryProgress[currentEditId],
                 name,
@@ -226,6 +240,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 notes,
                 tags
             };
+        }
+
+        if (statusChangedToCompleted) {
+            window.logActivity(currentEditType, currentEditId, name);
         }
         
         S.saveLocalData();

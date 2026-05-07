@@ -94,6 +94,25 @@ window.MentfxUtils = {
             }
         };
         reader.readAsText(file);
+    },
+
+    logActivity: function(type, id, name) {
+        const S = window.MentfxState;
+        const entry = {
+            date: new Date().toISOString(),
+            type: type,
+            id: id,
+            name: name
+        };
+        
+        if (!S.activityLog) S.activityLog = [];
+        S.activityLog.push(entry);
+        
+        // Keep log size manageable (last 1000 items)
+        if (S.activityLog.length > 1000) S.activityLog.shift();
+        
+        S.saveLocalData();
+        console.log(`Activity logged: ${name} (${type})`);
     }
 };
 
@@ -102,4 +121,5 @@ window.showToast = window.MentfxUtils.showToast;
 window.handleEmptyState = window.MentfxUtils.handleEmptyState;
 window.exportProgress = window.MentfxUtils.exportProgress;
 window.importProgress = window.MentfxUtils.importProgress;
+window.logActivity = window.MentfxUtils.logActivity;
 
