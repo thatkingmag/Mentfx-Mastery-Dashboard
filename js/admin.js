@@ -62,8 +62,8 @@ window.MentfxAdmin = {
         const token = document.getElementById('admin-github-token')?.value || localStorage.getItem('mentfxGithubToken');
         if (!token) return window.showToast('Please enter your GitHub Token in Settings first!', 'warning');
         
-        const owner = 'thatkingmag';
-        const repo = 'Mentfx-Mastery-Dashboard';
+        const owner = document.getElementById('admin-repo-owner')?.value || localStorage.getItem('mentfxGithubOwner') || 'thatkingmag';
+        const repo = document.getElementById('admin-repo-name')?.value || localStorage.getItem('mentfxGithubRepo') || 'Mentfx-Mastery-Dashboard';
         const S = window.MentfxState;
 
         const confirmPush = confirm('This will push all changes to your LIVE GitHub site. Continue?');
@@ -84,6 +84,10 @@ window.MentfxAdmin = {
             { path: 'js/tracker.js', content: null, localPath: 'js/tracker.js' },
             { path: 'js/admin.js', content: null, localPath: 'js/admin.js' },
             { path: 'js/ui.js', content: null, localPath: 'js/ui.js' },
+            { path: 'js/utils.js', content: null, localPath: 'js/utils.js' },
+            { path: 'js/state.js', content: null, localPath: 'js/state.js' },
+            { path: 'js/mastery.js', content: null, localPath: 'js/mastery.js' },
+            { path: 'js/dashboard.js', content: null, localPath: 'js/dashboard.js' },
             { path: 'app.js', content: null, localPath: 'app.js' }
         ];
 
@@ -95,9 +99,14 @@ window.MentfxAdmin = {
                 } else if (file.content) {
                     content = file.content;
                 } else {
-                    // Fetch local file content via server
-                    const resp = await fetch(`/${file.localPath}`);
-                    if (!resp.ok) throw new Error(`Failed to read local ${file.localPath}`);
+                    // Fetch local file content
+                    if (window.location.protocol === 'file:') {
+                        throw new Error("Local file access is restricted on 'file://' protocol. Please run the dashboard using a local server (e.g., 'npm run dev' or 'python -m http.server').");
+                    }
+                    
+                    // Use relative path instead of absolute to handle subfolders/live servers correctly
+                    const resp = await fetch(file.localPath);
+                    if (!resp.ok) throw new Error(`Failed to read local ${file.localPath} (Status: ${resp.status}). Ensure the local server is running.`);
                     content = await resp.text();
                 }
                 
@@ -106,9 +115,14 @@ window.MentfxAdmin = {
                     headers: { 'Authorization': `token ${token}` }
                 });
                 
-                if (!getResp.ok) throw new Error(`Failed to get SHA for ${file.path}`);
-                const fileData = await getResp.json();
-                const sha = fileData.sha;
+                let sha = null;
+                if (getResp.ok) {
+                    const fileData = await getResp.json();
+                    sha = fileData.sha;
+                } else if (getResp.status !== 404) {
+                    const error = await getResp.json();
+                    throw new Error(`Failed to get SHA for ${file.path}: ${error.message || getResp.statusText}`);
+                }
 
                 // 2. Update file
                 const putResp = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${file.path}`, {
@@ -139,7 +153,7 @@ window.MentfxAdmin = {
         } catch (e) {
             console.error('GitHub Sync Error:', e);
             window.showToast(`Sync Error: ${e.message}`, 'error');
-            const btn = document.getElementById('header-sync-btn');
+            const btn = document.getElementById('header-push-btn');
             if (btn) btn.classList.remove('syncing');
         }
     },
@@ -148,8 +162,8 @@ window.MentfxAdmin = {
         const token = document.getElementById('admin-github-token')?.value || localStorage.getItem('mentfxGithubToken');
         if (!token) return window.showToast('Please enter your GitHub Token first!', 'warning');
         
-        const owner = 'thatkingmag';
-        const repo = 'Mentfx-Mastery-Dashboard';
+        const owner = document.getElementById('admin-repo-owner')?.value || localStorage.getItem('mentfxGithubOwner') || 'thatkingmag';
+        const repo = document.getElementById('admin-repo-name')?.value || localStorage.getItem('mentfxGithubRepo') || 'Mentfx-Mastery-Dashboard';
         const S = window.MentfxState;
 
         const confirmPull = confirm('This will overwrite your local progress with the data from GitHub. Continue?');
@@ -298,11 +312,24 @@ window.MentfxAdmin = {
 
     loadSettings: function() {
         const token = localStorage.getItem('mentfxGithubToken');
+        const owner = localStorage.getItem('mentfxGithubOwner');
+        const repo = localStorage.getItem('mentfxGithubRepo');
         const remember = localStorage.getItem('mentfxRememberToken') === 'true';
         
-        if (remember && token) {
+        if (token) {
             const tokenInput = document.getElementById('admin-github-token');
             if (tokenInput) tokenInput.value = token;
+        }
+        if (owner) {
+            const ownerInput = document.getElementById('admin-repo-owner');
+            if (ownerInput) ownerInput.value = owner;
+        }
+        if (repo) {
+            const repoInput = document.getElementById('admin-repo-name');
+            if (repoInput) repoInput.value = repo;
+        }
+        
+        if (remember) {
             const rememberCheck = document.getElementById('admin-remember-token');
             if (rememberCheck) rememberCheck.checked = true;
         }
@@ -310,13 +337,19 @@ window.MentfxAdmin = {
 
     saveSettings: function() {
         const token = document.getElementById('admin-github-token').value;
+        const owner = document.getElementById('admin-repo-owner').value;
+        const repo = document.getElementById('admin-repo-name').value;
         const remember = document.getElementById('admin-remember-token').checked;
         
         if (remember) {
             localStorage.setItem('mentfxGithubToken', token);
+            localStorage.setItem('mentfxGithubOwner', owner);
+            localStorage.setItem('mentfxGithubRepo', repo);
             localStorage.setItem('mentfxRememberToken', 'true');
         } else {
             localStorage.removeItem('mentfxGithubToken');
+            localStorage.removeItem('mentfxGithubOwner');
+            localStorage.removeItem('mentfxGithubRepo');
             localStorage.setItem('mentfxRememberToken', 'false');
         }
         
