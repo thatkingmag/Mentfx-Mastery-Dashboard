@@ -104,6 +104,12 @@
             
             <div class="sidebar-profile" onclick="openProfileModal()">
                 <div class="user-profile">
+                    <div class="sync-status" id="header-sync-status" title="Cloud Sync Status" onclick="event.stopPropagation()">
+                        <button class="btn-icon" onclick="handleHeaderSync()" id="header-sync-btn">
+                            <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" height="1.2em" width="1.2em" xmlns="http://www.w3.org/2000/svg"><path d="M17.5 19a3.5 3.5 0 0 0 0-7h-1.5a4.5 4.5 0 1 0-9 0 3.5 3.5 0 0 0 0 7z"></path><path d="M12 11v6"></path><path d="M9 14l3 3 3-3"></path></svg>
+                        </button>
+                        <span id="last-sync-time" style="font-size: 0.6rem; color: var(--text-muted); display: none;"></span>
+                    </div>
                     <div id="sidebar-avatar" class="user-avatar">TM</div>
                     <div class="user-info">
                         <span id="sidebar-name" class="user-name">Tshepo Moeletsi</span>

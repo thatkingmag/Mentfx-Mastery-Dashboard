@@ -115,7 +115,30 @@ body {
 .sidebar-profile .user-profile {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 1.5rem;
+}
+
+.sync-status {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+#header-sync-btn.syncing {
+    animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    cursor: pointer;
     padding: 0.5rem;
     border-radius: 12px;
     transition: background 0.2s;
@@ -1229,7 +1252,7 @@ input[type=range]::-webkit-slider-runnable-track {
         transform: translateZ(0); /* Force GPU layer to prevent bleeding */
     }
     
-    .sidebar.active { 
+    .sidebar.active {
         transform: translateX(280px) translateZ(0) !important; 
         visibility: visible;
     }

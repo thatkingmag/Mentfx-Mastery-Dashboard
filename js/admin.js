@@ -188,12 +188,39 @@ window.MentfxAdmin = {
             }
             
             S.saveLocalData();
-            window.showToast('Data successfully synced from GitHub!', 'success');
+        window.showToast('Data successfully synced from GitHub!', 'success');
+            
+            // Update last sync time
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            localStorage.setItem('mentfxLastSync', timeStr);
+            this.updateSyncUI();
+
             location.reload(); // Refresh to apply everything
         } catch (e) {
             console.error('GitHub Pull Error:', e);
             window.showToast(`Pull Error: ${e.message}`, 'error');
+            document.getElementById('header-sync-btn')?.classList.remove('syncing');
         }
+    },
+
+    updateSyncUI: function() {
+        const lastSync = localStorage.getItem('mentfxLastSync');
+        const el = document.getElementById('last-sync-time');
+        if (el && lastSync) {
+            el.textContent = `Synced ${lastSync}`;
+            el.style.display = 'block';
+        }
+    },
+
+    handleHeaderSync: async function() {
+        const btn = document.getElementById('header-sync-btn');
+        if (btn) btn.classList.add('syncing');
+        
+        // Default action for header button is PULL (to get latest progress)
+        await this.pullFromGitHub();
+        
+        if (btn) btn.classList.remove('syncing');
     },
 
     resetAdminForm: function() {
@@ -477,9 +504,13 @@ window.addNewItem = window.MentfxAdmin.addNewItem.bind(window.MentfxAdmin);
 window.deleteAdminItem = window.MentfxAdmin.deleteAdminItem.bind(window.MentfxAdmin);
 window.handleAdminPush = window.MentfxAdmin.pushToGitHub.bind(window.MentfxAdmin);
 window.handleAdminPull = window.MentfxAdmin.pullFromGitHub.bind(window.MentfxAdmin);
+window.handleHeaderSync = window.MentfxAdmin.handleHeaderSync.bind(window.MentfxAdmin);
 window.saveAdminSettings = window.MentfxAdmin.saveSettings.bind(window.MentfxAdmin);
 window.resetAdminForm = window.MentfxAdmin.resetAdminForm.bind(window.MentfxAdmin);
 window.closeConfirmModal = window.closeConfirmModal;
 
 // Auto-init
-document.addEventListener('DOMContentLoaded', () => window.MentfxAdmin.init());
+document.addEventListener('DOMContentLoaded', () => {
+    window.MentfxAdmin.init();
+    window.MentfxAdmin.updateSyncUI();
+});
