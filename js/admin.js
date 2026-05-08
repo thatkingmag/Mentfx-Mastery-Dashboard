@@ -221,13 +221,17 @@ window.MentfxAdmin = {
         }
     },
 
-    handleHeaderSync: async function() {
-        const btn = document.getElementById('header-sync-btn');
+    handleHeaderPush: async function() {
+        const btn = document.getElementById('header-push-btn');
         if (btn) btn.classList.add('syncing');
-        
-        // Header button now BACKS UP progress to GitHub
         await this.pushToGitHub();
-        
+        if (btn) btn.classList.remove('syncing');
+    },
+
+    handleHeaderPull: async function() {
+        const btn = document.getElementById('header-pull-btn');
+        if (btn) btn.classList.add('syncing');
+        await this.pullFromGitHub();
         if (btn) btn.classList.remove('syncing');
     },
 
@@ -512,7 +516,8 @@ window.addNewItem = window.MentfxAdmin.addNewItem.bind(window.MentfxAdmin);
 window.deleteAdminItem = window.MentfxAdmin.deleteAdminItem.bind(window.MentfxAdmin);
 window.handleAdminPush = window.MentfxAdmin.pushToGitHub.bind(window.MentfxAdmin);
 window.handleAdminPull = window.MentfxAdmin.pullFromGitHub.bind(window.MentfxAdmin);
-window.handleHeaderSync = window.MentfxAdmin.handleHeaderSync.bind(window.MentfxAdmin);
+window.handleHeaderPush = window.MentfxAdmin.handleHeaderPush.bind(window.MentfxAdmin);
+window.handleHeaderPull = window.MentfxAdmin.handleHeaderPull.bind(window.MentfxAdmin);
 window.saveAdminSettings = window.MentfxAdmin.saveSettings.bind(window.MentfxAdmin);
 window.resetAdminForm = window.MentfxAdmin.resetAdminForm.bind(window.MentfxAdmin);
 window.closeConfirmModal = window.closeConfirmModal;

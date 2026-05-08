@@ -121,14 +121,15 @@ body {
 .sync-status {
     display: flex;
     align-items: center;
+    gap: 0.4rem;
 }
 
 .btn-sync-header {
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid var(--border);
     color: var(--text-muted);
-    padding: 0.4rem;
-    border-radius: 8px;
+    padding: 0.35rem;
+    border-radius: 6px;
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -136,15 +137,21 @@ body {
     transition: all 0.2s;
 }
 
-.btn-sync-header:hover {
-    background: rgba(255, 255, 255, 0.1);
-    color: var(--accent);
-    border-color: var(--accent);
+.btn-sync-header.push:hover {
+    background: rgba(59, 130, 246, 0.1);
+    color: #60a5fa;
+    border-color: #60a5fa;
 }
 
-#header-sync-btn.syncing {
-    animation: spin 2s linear infinite;
-    color: var(--accent);
+.btn-sync-header.pull:hover {
+    background: rgba(16, 185, 129, 0.1);
+    color: #34d399;
+    border-color: #34d399;
+}
+
+.btn-sync-header.syncing {
+    animation: spin 1s linear infinite;
+    opacity: 0.7;
 }
 
 @keyframes spin {
