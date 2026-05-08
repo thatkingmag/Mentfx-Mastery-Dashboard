@@ -130,9 +130,17 @@ window.MentfxAdmin = {
                 }
             }
             window.showToast('Successfully deployed to GitHub Pages!', 'success');
+            
+            // Update last sync time
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            localStorage.setItem('mentfxLastSync', timeStr);
+            this.updateSyncUI();
         } catch (e) {
             console.error('GitHub Sync Error:', e);
             window.showToast(`Sync Error: ${e.message}`, 'error');
+            const btn = document.getElementById('header-sync-btn');
+            if (btn) btn.classList.remove('syncing');
         }
     },
 
@@ -217,8 +225,8 @@ window.MentfxAdmin = {
         const btn = document.getElementById('header-sync-btn');
         if (btn) btn.classList.add('syncing');
         
-        // Default action for header button is PULL (to get latest progress)
-        await this.pullFromGitHub();
+        // Header button now BACKS UP progress to GitHub
+        await this.pushToGitHub();
         
         if (btn) btn.classList.remove('syncing');
     },
