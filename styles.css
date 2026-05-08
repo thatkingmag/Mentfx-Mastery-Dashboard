@@ -115,18 +115,36 @@ body {
 .sidebar-profile .user-profile {
     display: flex;
     align-items: center;
-    gap: 1.5rem;
+    gap: 1rem;
+    width: 100%;
 }
 
 .sync-status {
+    margin-left: auto;
+}
+
+.btn-sync-header {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    padding: 0.5rem;
+    border-radius: 8px;
+    cursor: pointer;
     display: flex;
-    flex-direction: column;
     align-items: center;
-    gap: 2px;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.btn-sync-header:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--accent);
+    border-color: var(--accent);
 }
 
 #header-sync-btn.syncing {
     animation: spin 2s linear infinite;
+    color: var(--accent);
 }
 
 @keyframes spin {
