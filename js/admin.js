@@ -174,23 +174,33 @@ window.MentfxAdmin = {
                 const content = decodeURIComponent(escape(atob(data.content)));
                 
                 // Parse the window.variable = ... format
-                const match = content.match(/window\.\w+\s*=\s*([\s\S]+?);/);
-                if (match) {
-                    const jsonStr = match[1];
-                    const jsonData = JSON.parse(jsonStr);
-                    
-                    if (file.type === 'webinar') S.appData = jsonData;
-                    if (file.type === 'application') S.appApplicationData = jsonData;
-                    if (file.type === 'progress') {
-                        // progressData.js has multiple variables. We need to parse them all.
-                        const progressMatches = content.matchAll(/window\.(\w+)\s*=\s*([\s\S]+?);/g);
-                        for (const pm of progressMatches) {
-                            const varName = pm[1];
-                            const varData = JSON.parse(pm[2]);
-                            if (varName === 'masteryProgress') S.masteryProgress = varData;
-                            if (varName === 'activityLog') S.activityLog = varData;
-                            if (varName === 'userProfileSync' && varData) S.userProfile = varData;
+                if (file.type === 'progress') {
+                    // progressData.js has multiple variables. Split by "window." 
+                    const parts = content.split('window.').filter(p => p.trim());
+                    for (const part of parts) {
+                        const eqIdx = part.indexOf('=');
+                        const scIdx = part.lastIndexOf(';');
+                        if (eqIdx > -1 && scIdx > -1) {
+                            const varName = part.substring(0, eqIdx).trim();
+                            const jsonStr = part.substring(eqIdx + 1, scIdx).trim();
+                            try {
+                                const varData = JSON.parse(jsonStr);
+                                if (varName === 'masteryProgress') S.masteryProgress = varData;
+                                if (varName === 'activityLog') S.activityLog = varData;
+                                if (varName === 'userProfileSync') S.userProfile = varData;
+                            } catch (e) {
+                                console.warn(`Failed to parse variable ${varName}`, e);
+                            }
                         }
+                    }
+                } else {
+                    const eqIdx = content.indexOf('=');
+                    const scIdx = content.lastIndexOf(';');
+                    if (eqIdx > -1 && scIdx > -1) {
+                        const jsonStr = content.substring(eqIdx + 1, scIdx).trim();
+                        const jsonData = JSON.parse(jsonStr);
+                        if (file.type === 'webinar') S.appData = jsonData;
+                        if (file.type === 'application') S.appApplicationData = jsonData;
                     }
                 }
             }
