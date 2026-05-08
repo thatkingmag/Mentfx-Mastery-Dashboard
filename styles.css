@@ -116,18 +116,18 @@ body {
     display: flex;
     align-items: center;
     gap: 1rem;
-    width: 100%;
 }
 
 .sync-status {
-    margin-left: auto;
+    display: flex;
+    align-items: center;
 }
 
 .btn-sync-header {
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid var(--border);
     color: var(--text-muted);
-    padding: 0.5rem;
+    padding: 0.4rem;
     border-radius: 8px;
     cursor: pointer;
     display: flex;
