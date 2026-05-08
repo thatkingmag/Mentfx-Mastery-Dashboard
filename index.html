@@ -576,8 +576,9 @@
                             </div>
                             
                             <div class="modal-actions" style="margin-top: 2rem; justify-content: flex-end;">
-                                <button class="btn btn-primary" onclick="saveAdminSettings()">Save Configuration</button>
-                            </div>
+                                    <button class="btn btn-primary" onclick="saveAdminSettings()">Save Settings</button>
+                                    <button class="btn btn-secondary" onclick="handleAdminPull()" style="margin-top: 1rem; width: 100%;">Sync from GitHub (Pull)</button>
+                                </div>
                         </div>
                     </div>
                 </div>
@@ -690,6 +691,7 @@
     <!-- Toast container -->
     <div id="toast-container" class="toast-container"></div>
 
+    <script src="progressData.js"></script>
     <script src="js/utils.js"></script>
     <script src="js/state.js"></script>
     <script src="js/ui.js"></script>

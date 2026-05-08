@@ -34,13 +34,25 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const savedMastery = localStorage.getItem('mentfxMastery');
-        if (savedMastery) S.masteryProgress = JSON.parse(savedMastery);
+        if (savedMastery) {
+            S.masteryProgress = JSON.parse(savedMastery);
+        } else if (window.masteryProgress) {
+            S.masteryProgress = window.masteryProgress;
+        }
 
         const savedLog = localStorage.getItem('mentfxActivityLog');
-        if (savedLog) S.activityLog = JSON.parse(savedLog);
+        if (savedLog) {
+            S.activityLog = JSON.parse(savedLog);
+        } else if (window.activityLog) {
+            S.activityLog = window.activityLog;
+        }
 
         const savedProfile = localStorage.getItem('mentfxProfile');
-        if (savedProfile) S.userProfile = JSON.parse(savedProfile);
+        if (savedProfile) {
+            S.userProfile = JSON.parse(savedProfile);
+        } else if (window.userProfileSync) {
+            S.userProfile = window.userProfileSync;
+        }
 
         // Initial Renders
         UI.showTab('dashboard');

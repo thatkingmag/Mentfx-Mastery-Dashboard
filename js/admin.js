@@ -77,6 +77,10 @@ window.MentfxAdmin = {
             { path: 'data.js', variable: 'webinarData', data: S.appData },
             { path: 'applicationData.js', variable: 'applicationData', data: S.appApplicationData },
             { path: 'masteryData.js', variable: 'masteryData', data: window.masteryData },
+            { 
+                path: 'progressData.js', 
+                content: `window.masteryProgress = ${JSON.stringify(S.masteryProgress, null, 4)};\nwindow.activityLog = ${JSON.stringify(S.activityLog, null, 4)};\nwindow.userProfileSync = ${JSON.stringify(S.userProfile, null, 4)};`
+            },
             { path: 'js/tracker.js', content: null, localPath: 'js/tracker.js' },
             { path: 'js/admin.js', content: null, localPath: 'js/admin.js' },
             { path: 'js/ui.js', content: null, localPath: 'js/ui.js' },
@@ -88,6 +92,8 @@ window.MentfxAdmin = {
                 let content;
                 if (file.variable) {
                     content = `window.${file.variable} = ${JSON.stringify(file.data, null, 4)};`;
+                } else if (file.content) {
+                    content = file.content;
                 } else {
                     // Fetch local file content via server
                     const resp = await fetch(`/${file.localPath}`);
@@ -127,6 +133,66 @@ window.MentfxAdmin = {
         } catch (e) {
             console.error('GitHub Sync Error:', e);
             window.showToast(`Sync Error: ${e.message}`, 'error');
+        }
+    },
+
+    pullFromGitHub: async function() {
+        const token = document.getElementById('admin-github-token')?.value || localStorage.getItem('mentfxGithubToken');
+        if (!token) return window.showToast('Please enter your GitHub Token first!', 'warning');
+        
+        const owner = 'thatkingmag';
+        const repo = 'Mentfx-Mastery-Dashboard';
+        const S = window.MentfxState;
+
+        const confirmPull = confirm('This will overwrite your local progress with the data from GitHub. Continue?');
+        if (!confirmPull) return;
+
+        window.showToast('Pulling latest data from GitHub...', 'info');
+
+        const filesToPull = [
+            { path: 'data.js', type: 'webinar' },
+            { path: 'applicationData.js', type: 'application' },
+            { path: 'progressData.js', type: 'progress' }
+        ];
+
+        try {
+            for (const file of filesToPull) {
+                const resp = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${file.path}?timestamp=${Date.now()}`, {
+                    headers: { 'Authorization': `token ${token}` }
+                });
+                
+                if (!resp.ok) throw new Error(`Failed to fetch ${file.path}`);
+                const data = await resp.json();
+                const content = decodeURIComponent(escape(atob(data.content)));
+                
+                // Parse the window.variable = ... format
+                const match = content.match(/window\.\w+\s*=\s*([\s\S]+?);/);
+                if (match) {
+                    const jsonStr = match[1];
+                    const jsonData = JSON.parse(jsonStr);
+                    
+                    if (file.type === 'webinar') S.appData = jsonData;
+                    if (file.type === 'application') S.appApplicationData = jsonData;
+                    if (file.type === 'progress') {
+                        // progressData.js has multiple variables. We need to parse them all.
+                        const progressMatches = content.matchAll(/window\.(\w+)\s*=\s*([\s\S]+?);/g);
+                        for (const pm of progressMatches) {
+                            const varName = pm[1];
+                            const varData = JSON.parse(pm[2]);
+                            if (varName === 'masteryProgress') S.masteryProgress = varData;
+                            if (varName === 'activityLog') S.activityLog = varData;
+                            if (varName === 'userProfileSync' && varData) S.userProfile = varData;
+                        }
+                    }
+                }
+            }
+            
+            S.saveLocalData();
+            window.showToast('Data successfully synced from GitHub!', 'success');
+            location.reload(); // Refresh to apply everything
+        } catch (e) {
+            console.error('GitHub Pull Error:', e);
+            window.showToast(`Pull Error: ${e.message}`, 'error');
         }
     },
 
@@ -409,7 +475,8 @@ window.saveToServer = window.MentfxAdmin.saveToServer;
 window.renderAdminManageList = window.MentfxAdmin.renderAdminManageList.bind(window.MentfxAdmin);
 window.addNewItem = window.MentfxAdmin.addNewItem.bind(window.MentfxAdmin);
 window.deleteAdminItem = window.MentfxAdmin.deleteAdminItem.bind(window.MentfxAdmin);
-window.handleAdminPush = window.MentfxAdmin.pushToGitHub;
+window.handleAdminPush = window.MentfxAdmin.pushToGitHub.bind(window.MentfxAdmin);
+window.handleAdminPull = window.MentfxAdmin.pullFromGitHub.bind(window.MentfxAdmin);
 window.saveAdminSettings = window.MentfxAdmin.saveSettings.bind(window.MentfxAdmin);
 window.resetAdminForm = window.MentfxAdmin.resetAdminForm.bind(window.MentfxAdmin);
 window.closeConfirmModal = window.closeConfirmModal;
