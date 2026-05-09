@@ -66,9 +66,6 @@ window.MentfxAdmin = {
         const repo = document.getElementById('admin-repo-name')?.value || localStorage.getItem('mentfxGithubRepo') || 'Mentfx-Mastery-Dashboard';
         const S = window.MentfxState;
 
-        const confirmPush = confirm('This will push all changes to your LIVE GitHub site. Continue?');
-        if (!confirmPush) return;
-
         window.showToast('Initiating GitHub API Sync...', 'info');
 
         const filesToSync = [
@@ -88,6 +85,8 @@ window.MentfxAdmin = {
             { path: 'js/state.js', content: null, localPath: 'js/state.js' },
             { path: 'js/mastery.js', content: null, localPath: 'js/mastery.js' },
             { path: 'js/dashboard.js', content: null, localPath: 'js/dashboard.js' },
+            { path: 'js/gamification.js', content: null, localPath: 'js/gamification.js' },
+            { path: 'js/analytics.js', content: null, localPath: 'js/analytics.js' },
             { path: 'app.js', content: null, localPath: 'app.js' }
         ];
 
@@ -166,9 +165,6 @@ window.MentfxAdmin = {
         const repo = document.getElementById('admin-repo-name')?.value || localStorage.getItem('mentfxGithubRepo') || 'Mentfx-Mastery-Dashboard';
         const S = window.MentfxState;
 
-        const confirmPull = confirm('This will overwrite your local progress with the data from GitHub. Continue?');
-        if (!confirmPull) return;
-
         window.showToast('Pulling latest data from GitHub...', 'info');
 
         const filesToPull = [
@@ -245,18 +241,60 @@ window.MentfxAdmin = {
         }
     },
 
-    handleHeaderPush: async function() {
-        const btn = document.getElementById('header-push-btn');
-        if (btn) btn.classList.add('syncing');
-        await this.pushToGitHub();
-        if (btn) btn.classList.remove('syncing');
+    handleHeaderPush: function() {
+        const modal = document.getElementById('confirm-modal');
+        const title = document.getElementById('confirm-title');
+        const message = document.getElementById('confirm-message');
+        const actionBtn = document.getElementById('confirm-action-btn');
+        
+        if (!modal || !actionBtn) return this.pushToGitHub(); // Fallback if modal missing
+
+        title.textContent = 'Push to Cloud?';
+        message.textContent = 'This will upload your local progress and project files to your LIVE GitHub site. Continue?';
+        actionBtn.textContent = 'Push';
+        actionBtn.style.background = 'var(--accent)';
+        
+        actionBtn.onclick = async () => {
+            window.closeConfirmModal();
+            const btn = document.getElementById('header-push-btn');
+            if (btn) btn.classList.add('syncing');
+            try {
+                await this.pushToGitHub();
+            } finally {
+                if (btn) btn.classList.remove('syncing');
+            }
+        };
+
+        modal.style.display = 'flex';
+        setTimeout(() => modal.classList.add('active'), 10);
     },
 
-    handleHeaderPull: async function() {
-        const btn = document.getElementById('header-pull-btn');
-        if (btn) btn.classList.add('syncing');
-        await this.pullFromGitHub();
-        if (btn) btn.classList.remove('syncing');
+    handleHeaderPull: function() {
+        const modal = document.getElementById('confirm-modal');
+        const title = document.getElementById('confirm-title');
+        const message = document.getElementById('confirm-message');
+        const actionBtn = document.getElementById('confirm-action-btn');
+        
+        if (!modal || !actionBtn) return this.pullFromGitHub(); // Fallback
+
+        title.textContent = 'Pull from Cloud?';
+        message.textContent = 'This will OVERWRITE your local browser data with the version from GitHub. Continue?';
+        actionBtn.textContent = 'Pull';
+        actionBtn.style.background = 'var(--accent)';
+        
+        actionBtn.onclick = async () => {
+            window.closeConfirmModal();
+            const btn = document.getElementById('header-pull-btn');
+            if (btn) btn.classList.add('syncing');
+            try {
+                await this.pullFromGitHub();
+            } finally {
+                if (btn) btn.classList.remove('syncing');
+            }
+        };
+
+        modal.style.display = 'flex';
+        setTimeout(() => modal.classList.add('active'), 10);
     },
 
     resetAdminForm: function() {
@@ -506,6 +544,8 @@ window.MentfxAdmin = {
         const displayName = name || id;
         title.textContent = `Delete ${type.charAt(0).toUpperCase() + type.slice(1)}?`;
         message.textContent = `Are you sure you want to remove "${displayName}"? This will permanently delete it from the project files.`;
+        actionBtn.textContent = 'Delete';
+        actionBtn.style.background = 'var(--danger)';
         
         // Setup action button
         actionBtn.onclick = async () => {
