@@ -4,7 +4,7 @@ window.webinarData = [
         "name": "Webinar 1",
         "link": "https://youtu.be/ECb1fjKrKzk",
         "monthGroup": "March 2021",
-        "status": "Not Started",
+        "status": "Completed",
         "notes": "",
         "keyTakeaways": "",
         "rating": 0
@@ -14,7 +14,7 @@ window.webinarData = [
         "name": "Webinar 2",
         "link": "https://youtu.be/Szf8tARxhmE",
         "monthGroup": "March 2021",
-        "status": "Not Started",
+        "status": "Completed",
         "notes": "",
         "keyTakeaways": "",
         "rating": 0
