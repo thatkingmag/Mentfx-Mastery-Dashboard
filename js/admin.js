@@ -323,9 +323,6 @@ window.MentfxAdmin = {
                 if (target === 'manage') this.renderAdminManageList();
             });
         });
-
-        }
-
         // Filtering and search in manage list
         const searchInput = document.getElementById('admin-manage-search');
         const typeFilter = document.getElementById('admin-manage-type');
