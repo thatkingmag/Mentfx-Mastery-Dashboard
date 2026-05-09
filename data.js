@@ -1934,7 +1934,7 @@ window.webinarData = [
         "name": "Webinar 194",
         "link": "https://youtu.be/-NTaCafqrgk",
         "monthGroup": "March 2025",
-        "status": "In Progress",
+        "status": "Completed",
         "notes": "",
         "keyTakeaways": "",
         "rating": 0,
