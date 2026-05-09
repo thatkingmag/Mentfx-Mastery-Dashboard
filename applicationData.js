@@ -4,58 +4,45 @@ window.applicationData = [
         "name": "Application of Material 1",
         "link": "https://youtu.be/BUilx_P30vE",
         "category": "Application",
-        "status": "Completed",
+        "status": "Not Started",
         "notes": "",
-        "rating": 5,
-        "tags": [
-            "System"
-        ]
+        "rating": 0
     },
     {
         "id": "App 2",
         "name": "Application of Material 2",
         "link": "https://youtu.be/V4XQTBUTeQ4",
         "category": "Application",
-        "status": "Completed",
+        "status": "Not Started",
         "notes": "",
-        "rating": 5,
-        "tags": [
-            "System"
-        ]
+        "rating": 0
     },
     {
         "id": "App 3",
         "name": "Application of Material 3",
         "link": "https://youtu.be/d0j1ws214Pg",
         "category": "Application",
-        "status": "Completed",
+        "status": "Not Started",
         "notes": "",
-        "rating": 5,
-        "tags": [
-            "System"
-        ]
+        "rating": 0
     },
     {
         "id": "App 4",
         "name": "Application of Material 4",
         "link": "https://youtu.be/NqxFEWAszTY",
         "category": "Application",
-        "status": "Completed",
+        "status": "Not Started",
         "notes": "",
-        "rating": 5,
-        "tags": []
+        "rating": 0
     },
     {
         "id": "App 5",
         "name": "Application of Material 5",
         "link": "https://youtu.be/3OoV8yS6bCs",
         "category": "Application",
-        "status": "In Progress",
+        "status": "Not Started",
         "notes": "",
-        "rating": 1,
-        "tags": [
-            "System"
-        ]
+        "rating": 0
     },
     {
         "id": "App 6",
@@ -134,24 +121,6 @@ window.applicationData = [
         "name": "Trading a LTF EVC with cycles",
         "link": "https://youtu.be/V4XQTBUTeQ4",
         "category": "Application",
-        "status": "Not Started",
-        "notes": "",
-        "rating": 0
-    },
-    {
-        "id": "exactly-how-to-take-a-good-trade,-on-anything.-2-hours.",
-        "name": "Exactly how to take a good trade, on anything. 2 hours.",
-        "link": "https://youtu.be/wwGYGyZYrtU",
-        "category": "System",
-        "status": "Not Started",
-        "notes": "",
-        "rating": 0
-    },
-    {
-        "id": "part-ii-trading-model-part-2.0",
-        "name": "Part II Trading Model Part 2.0",
-        "link": "https://youtu.be/VfMR3hSuJao",
-        "category": "System",
         "status": "Not Started",
         "notes": "",
         "rating": 0
