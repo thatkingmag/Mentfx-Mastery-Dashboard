@@ -508,6 +508,12 @@ window.activityLog = [
         "type": "mastery",
         "id": "m7l3",
         "name": "7.3 - The full market cycle"
+    },
+    {
+        "date": "2026-05-09T06:03:32.727Z",
+        "type": "webinar",
+        "id": "Webinar 194",
+        "name": "Webinar 194"
     }
 ];
 window.userProfileSync = {
