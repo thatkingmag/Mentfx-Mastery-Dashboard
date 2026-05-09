@@ -4,7 +4,7 @@ window.webinarData = [
         "name": "Webinar 1",
         "link": "https://youtu.be/ECb1fjKrKzk",
         "monthGroup": "March 2021",
-        "status": "Completed",
+        "status": "Not Started",
         "notes": "",
         "keyTakeaways": "",
         "rating": 0
@@ -994,10 +994,10 @@ window.webinarData = [
         "name": "Webinar 100",
         "link": "https://www.youtube.com/watch?v=DmkKpciwfkU",
         "monthGroup": "May 2023",
-        "status": "Not Started",
-        "notes": "",
+        "status": "In Progress",
+        "notes": "Cjfjf",
         "keyTakeaways": "",
-        "rating": 0
+        "rating": 2
     },
     {
         "id": "Webinar 101",
@@ -1934,12 +1934,10 @@ window.webinarData = [
         "name": "Webinar 194",
         "link": "https://youtu.be/-NTaCafqrgk",
         "monthGroup": "March 2025",
-        "status": "Completed",
+        "status": "Not Started",
         "notes": "",
         "keyTakeaways": "",
-        "rating": 0,
-        "understanding": 4,
-        "tags": []
+        "rating": 0
     },
     {
         "id": "Webinar 195",
@@ -2536,17 +2534,17 @@ window.webinarData = [
         "name": "Webinar 253",
         "link": "https://www.youtube.com/watch?v=OEjjtHXmQPo",
         "monthGroup": "April 2026",
-        "status": "Completed",
+        "status": "Not Started",
         "notes": "",
         "keyTakeaways": "",
-        "rating": 5
+        "rating": 0
     },
     {
         "id": "Webinar 254",
         "name": "Webinar 254",
         "link": "https://www.youtube.com/watch?v=4Ss0H4hgHbE",
         "monthGroup": "April 2026",
-        "status": "Completed",
+        "status": "Not Started",
         "notes": "",
         "keyTakeaways": "",
         "rating": 0
@@ -2554,7 +2552,7 @@ window.webinarData = [
     {
         "id": "Webinar 255",
         "name": "Webinar 255",
-        "link": "https://youtu.be/FzbK2yL_KuY?si=AtH89zrLaF40GEFd",
+        "link": "https://youtu.be/FzbK2yL_KuY",
         "monthGroup": "May 2026",
         "status": "Not Started",
         "notes": "",
@@ -2566,26 +2564,6 @@ window.webinarData = [
     {
         "id": "Webinar 256",
         "name": "Webinar 256",
-        "link": "",
-        "monthGroup": "May 2026",
-        "status": "Not Started",
-        "notes": "",
-        "keyTakeaways": "",
-        "rating": 0
-    },
-    {
-        "id": "Webinar 257",
-        "name": "Webinar 257",
-        "link": "",
-        "monthGroup": "May 2026",
-        "status": "Not Started",
-        "notes": "",
-        "keyTakeaways": "",
-        "rating": 0
-    },
-    {
-        "id": "Webinar 258",
-        "name": "Webinar 258",
         "link": "",
         "monthGroup": "May 2026",
         "status": "Not Started",
