@@ -324,16 +324,6 @@ window.MentfxAdmin = {
             });
         });
 
-        // Discord HTML Import
-        const importBtn = document.getElementById('btn-import-discord');
-        if (importBtn) {
-            importBtn.addEventListener('click', () => {
-                const input = document.createElement('input');
-                input.type = 'file';
-                input.accept = '.html';
-                input.onchange = (e) => this.processDiscordHTML(e.target.files[0]);
-                input.click();
-            });
         }
 
         // Filtering and search in manage list
@@ -501,40 +491,6 @@ window.MentfxAdmin = {
         }
         window.updateDashboard?.();
     },
-
-    processDiscordHTML: async function(file) {
-        if (!file) return;
-        const text = await file.text();
-        const S = window.MentfxState;
-        let updateCount = 0;
-
-        // Regex to match "Webinar X: URL"
-        const regex = /Webinar\s+(\d+):\s+<a\s+href="([^"]+)">/gi;
-        let match;
-
-        while ((match = regex.exec(text)) !== null) {
-            const num = match[1];
-            const url = match[2];
-            const webinarId = `Webinar ${num}`;
-            
-            const webinar = S.appData.find(w => w.id === webinarId || w.name === webinarId);
-            if (webinar && (!webinar.link || webinar.link === "")) {
-                webinar.link = url;
-                updateCount++;
-            }
-        }
-
-        if (updateCount > 0) {
-            S.saveLocalData();
-            this.saveToServer();
-            this.syncToProjectFiles();
-            this.renderAdminManageList();
-            window.showToast(`Success! Updated ${updateCount} webinar links.`, 'success');
-        } else {
-            window.showToast('No new webinar links found to update.', 'info');
-        }
-    },
-
     deleteAdminItem: function(id, type, name = '') {
         const modal = document.getElementById('confirm-modal');
         const title = document.getElementById('confirm-title');
