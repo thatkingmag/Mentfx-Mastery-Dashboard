@@ -113,6 +113,15 @@ window.MentfxUtils = {
         
         S.saveLocalData();
         console.log(`Activity logged: ${name} (${type})`);
+    },
+
+    calculateMasteryPct: function() {
+        const S = window.MentfxState;
+        const totalLessons = (window.masteryData || []).reduce((acc, mod) => acc + mod.lessons.length, 0);
+        if (totalLessons === 0) return 0;
+        
+        const completedLessons = Object.values(S.masteryProgress).filter(p => p.status === 'Completed').length;
+        return Math.round((completedLessons / totalLessons) * 100);
     }
 };
 
