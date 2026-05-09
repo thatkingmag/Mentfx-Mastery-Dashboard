@@ -6,7 +6,10 @@ window.applicationData = [
         "category": "Application",
         "status": "Completed",
         "notes": "",
-        "rating": 5
+        "rating": 5,
+        "tags": [
+            "System"
+        ]
     },
     {
         "id": "App 2",
@@ -15,7 +18,10 @@ window.applicationData = [
         "category": "Application",
         "status": "Completed",
         "notes": "",
-        "rating": 5
+        "rating": 5,
+        "tags": [
+            "System"
+        ]
     },
     {
         "id": "App 3",
@@ -24,7 +30,10 @@ window.applicationData = [
         "category": "Application",
         "status": "Completed",
         "notes": "",
-        "rating": 5
+        "rating": 5,
+        "tags": [
+            "System"
+        ]
     },
     {
         "id": "App 4",
@@ -41,41 +50,37 @@ window.applicationData = [
         "name": "Application of Material 5",
         "link": "https://youtu.be/3OoV8yS6bCs",
         "category": "Application",
-        "status": "Completed",
+        "status": "In Progress",
         "notes": "",
-        "rating": 5,
-        "tags": []
+        "rating": 1,
+        "tags": [
+            "System"
+        ]
     },
     {
         "id": "App 6",
         "name": "Application of Material 6",
         "link": "https://youtu.be/PA8CPZj0Epc",
         "category": "Application",
-        "status": "Completed",
+        "status": "Not Started",
         "notes": "",
-        "rating": 0,
-        "understanding": 2,
-        "tags": [
-            "System"
-        ]
+        "rating": 0
     },
     {
         "id": "App 7",
         "name": "Application of Material 7",
         "link": "https://youtu.be/R8anv3OiqUE",
         "category": "Application",
-        "status": "Completed",
+        "status": "Not Started",
         "notes": "",
-        "rating": 0,
-        "understanding": 5,
-        "tags": []
+        "rating": 0
     },
     {
         "id": "App 8",
         "name": "Application of Material 8",
         "link": "https://youtu.be/hkiQ1VTIZik",
         "category": "Application",
-        "status": "Completed",
+        "status": "Not Started",
         "notes": "",
         "rating": 0
     },
@@ -84,7 +89,7 @@ window.applicationData = [
         "name": "Application of Material 9",
         "link": "https://youtu.be/NXMDHL5aISE",
         "category": "Application",
-        "status": "Completed",
+        "status": "Not Started",
         "notes": "",
         "rating": 0
     },
@@ -93,13 +98,9 @@ window.applicationData = [
         "name": "Application of Material 10",
         "link": "https://youtu.be/Hgd48Tej-mk",
         "category": "Application",
-        "status": "In Progress",
+        "status": "Not Started",
         "notes": "",
-        "rating": 0,
-        "understanding": 5,
-        "tags": [
-            "System"
-        ]
+        "rating": 0
     },
     {
         "id": "App 11",
