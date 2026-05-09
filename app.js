@@ -68,6 +68,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         setupEventListeners();
+        window.MentfxGamification?.init();
+        window.MentfxAnalytics?.init();
         console.log('Mentfx Dashboard Initialized');
     }
 
@@ -158,6 +160,9 @@ document.addEventListener('DOMContentLoaded', () => {
         M.renderMastery();
         U.showToast(`${category.charAt(0).toUpperCase() + category.slice(1)} status updated`, 'success');
         window.updateDashboard?.();
+        window.MentfxGamification?.updateRank();
+        window.MentfxGamification?.updateBadges();
+        window.MentfxAnalytics?.init();
     };
 
     let currentEditId = null;
@@ -270,6 +275,9 @@ document.addEventListener('DOMContentLoaded', () => {
         window.closeModal();
         U.showToast('Changes saved successfully', 'success');
         window.updateDashboard?.();
+        window.MentfxGamification?.updateRank();
+        window.MentfxGamification?.updateBadges();
+        window.MentfxAnalytics?.init();
     };
 
     window.handleGlobalSearch = (query) => {
