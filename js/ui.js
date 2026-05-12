@@ -36,8 +36,27 @@ window.MentfxUI = {
         if (pctText) pctText.textContent = `${pct}%`;
         if (pctBar) pctBar.style.width = `${pct}%`;
 
+        // Get Filter Values
+        const statusFilter = document.getElementById('status-filter-app');
+        const sortFilter = document.getElementById('sort-filter-app');
+        const searchFilter = document.getElementById('search-filter-app');
+        
+        const stat = statusFilter ? statusFilter.value : 'All';
+        const sortBy = sortFilter ? sortFilter.value : 'default';
+        const term = searchFilter ? searchFilter.value.toLowerCase() : '';
+
         container.innerHTML = '';
-        S.appApplicationData.forEach(item => {
+        
+        let filtered = S.appApplicationData.filter(item => {
+            if (stat !== 'All' && item.status !== stat) return false;
+            if (term && !item.name.toLowerCase().includes(term)) return false;
+            return true;
+        });
+
+        // Sort Data
+        filtered = this.getSortedAppData(filtered, sortBy);
+
+        filtered.forEach(item => {
             const card = document.createElement('div');
             card.className = 'webinar-card glass';
             const isDone = item.status === 'Completed';
@@ -55,6 +74,44 @@ window.MentfxUI = {
                 </div>
             `;
             container.appendChild(card);
+        });
+
+        if (!this.appFiltersSet) {
+            this.setupAppFilters();
+            this.appFiltersSet = true;
+        }
+    },
+
+    getSortedAppData: function(data, sortBy) {
+        const sorted = [...data];
+        switch (sortBy) {
+            case 'newest': return sorted.reverse();
+            case 'rating-high': return sorted.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+            case 'name-az': return sorted.sort((a, b) => a.name.localeCompare(b.name));
+            case 'name-za': return sorted.sort((a, b) => b.name.localeCompare(a.name));
+            case 'status-progress': 
+                return sorted.sort((a, b) => {
+                    if (a.status === 'In Progress' && b.status !== 'In Progress') return -1;
+                    if (a.status !== 'In Progress' && b.status === 'In Progress') return 1;
+                    return 0;
+                });
+            case 'status-done':
+                return sorted.sort((a, b) => {
+                    if (a.status === 'Completed' && b.status !== 'Completed') return -1;
+                    if (a.status !== 'Completed' && b.status === 'Completed') return 1;
+                    return 0;
+                });
+            default: return sorted;
+        }
+    },
+
+    setupAppFilters: function() {
+        ['status-filter-app', 'sort-filter-app', 'search-filter-app'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.addEventListener('input', () => this.renderApplication());
+                el.addEventListener('change', () => this.renderApplication());
+            }
         });
     },
 

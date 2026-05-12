@@ -479,6 +479,25 @@
                             </div>
                         </div>
                     </div>
+
+                    <div class="filters">
+                        <select id="status-filter-app" class="glass-input">
+                            <option value="All">All Statuses</option>
+                            <option value="Not Started">Not Started</option>
+                            <option value="In Progress">In Progress</option>
+                            <option value="Completed">Completed</option>
+                        </select>
+                        <select id="sort-filter-app" class="glass-input">
+                            <option value="default">↑ Oldest → Latest</option>
+                            <option value="newest">↓ Latest → Oldest</option>
+                            <option value="rating-high">★ Highest Rating</option>
+                            <option value="name-az">A → Z Name</option>
+                            <option value="name-za">Z → A Name</option>
+                            <option value="status-progress">● In Progress First</option>
+                            <option value="status-done">✓ Completed First</option>
+                        </select>
+                        <input type="text" id="search-filter-app" class="glass-input" placeholder="Search application items...">
+                    </div>
                 </header>
 
                 <div id="application-content">
