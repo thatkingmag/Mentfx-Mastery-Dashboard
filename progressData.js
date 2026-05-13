@@ -194,6 +194,18 @@ window.masteryProgress = {
     "m7l3": {
         "status": "Completed",
         "name": "7.3 - The full market cycle"
+    },
+    "m3l12": {
+        "status": "Completed",
+        "name": "3.12 - Ment Blocks in trending vs ranging markets"
+    },
+    "m3l13": {
+        "status": "Completed",
+        "name": "3.13 - Conclusion on Ment Blocks"
+    },
+    "m6l1": {
+        "status": "Completed",
+        "name": "6.1 - Generality of EVC"
     }
 };
 window.activityLog = [
@@ -514,6 +526,54 @@ window.activityLog = [
         "type": "webinar",
         "id": "Webinar 194",
         "name": "Webinar 194"
+    },
+    {
+        "date": "2026-05-10T04:26:18.326Z",
+        "type": "mastery",
+        "id": "m3l12",
+        "name": "3.12 - Ment Blocks in trending vs ranging markets"
+    },
+    {
+        "date": "2026-05-10T04:26:23.352Z",
+        "type": "mastery",
+        "id": "m3l13",
+        "name": "3.13 - Conclusion on Ment Blocks"
+    },
+    {
+        "date": "2026-05-10T04:28:06.132Z",
+        "type": "webinar",
+        "id": "Webinar 252",
+        "name": "Webinar 252"
+    },
+    {
+        "date": "2026-05-10T04:28:07.539Z",
+        "type": "webinar",
+        "id": "Webinar 251",
+        "name": "Webinar 251"
+    },
+    {
+        "date": "2026-05-11T05:52:33.870Z",
+        "type": "webinar",
+        "id": "webinar-256-1778478647151",
+        "name": "Webinar 256"
+    },
+    {
+        "date": "2026-05-11T10:20:27.572Z",
+        "type": "mastery",
+        "id": "m6l1",
+        "name": "6.1 - Generality of EVC"
+    },
+    {
+        "date": "2026-05-12T14:40:09.754Z",
+        "type": "application",
+        "id": "App 10",
+        "name": "Application of Material 10"
+    },
+    {
+        "date": "2026-05-13T07:04:09.658Z",
+        "type": "application",
+        "id": "App 11",
+        "name": "Application Of Material 11"
     }
 ];
 window.userProfileSync = {
