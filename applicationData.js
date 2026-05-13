@@ -93,7 +93,7 @@ window.applicationData = [
         "name": "Application of Material 10",
         "link": "https://youtu.be/Hgd48Tej-mk",
         "category": "Application",
-        "status": "In Progress",
+        "status": "Completed",
         "notes": "",
         "rating": 0,
         "understanding": 5,
@@ -106,7 +106,7 @@ window.applicationData = [
         "name": "Application Of Material 11",
         "link": "https://youtu.be/vtmJQY3t7wI?si=5-bDCY6vRcP1y_VO",
         "category": "Application",
-        "status": "Not Started",
+        "status": "Completed",
         "notes": "",
         "rating": 0
     },
