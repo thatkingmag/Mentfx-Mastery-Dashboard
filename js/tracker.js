@@ -128,20 +128,19 @@ window.MentfxTracker = {
         filtered = this.getSortedData(filtered, sortBy);
 
         const isChronological = ['default', 'newest', 'year-oldest', 'year-newest'].includes(sortBy);
-        let currentYear = null;
+        let currentMonthGroup = null;
 
         filtered.forEach(wb => {
-            // Render Year Divider header in Table if chronological sorting is active
+            // Render Month-Year Divider header in Table if chronological sorting is active
             if (isChronological) {
-                const yearMatch = wb.monthGroup.match(/\d{4}/);
-                const year = yearMatch ? yearMatch[0] : 'Other';
-                if (year !== currentYear) {
-                    currentYear = year;
+                const monthGroup = wb.monthGroup || 'Other';
+                if (monthGroup !== currentMonthGroup) {
+                    currentMonthGroup = monthGroup;
                     const dividerRow = document.createElement('tr');
                     dividerRow.className = 'year-divider-row';
                     dividerRow.innerHTML = `
                         <td colspan="8" class="year-divider-cell">
-                            ${year}
+                            ${monthGroup}
                         </td>
                     `;
                     trackerBody.appendChild(dividerRow);
@@ -212,17 +211,16 @@ window.MentfxTracker = {
         filtered = this.getSortedData(filtered, sortBy);
 
         const isChronological = ['default', 'newest', 'year-oldest', 'year-newest'].includes(sortBy);
-        let currentYear = null;
+        let currentMonthGroup = null;
 
         filtered.forEach(wb => {
             if (isChronological) {
-                const yearMatch = wb.monthGroup.match(/\d{4}/);
-                const year = yearMatch ? yearMatch[0] : 'Other';
-                if (year !== currentYear) {
-                    currentYear = year;
+                const monthGroup = wb.monthGroup || 'Other';
+                if (monthGroup !== currentMonthGroup) {
+                    currentMonthGroup = monthGroup;
                     const divider = document.createElement('div');
                     divider.className = 'year-grid-divider';
-                    divider.textContent = year;
+                    divider.textContent = monthGroup;
                     container.appendChild(divider);
                 }
             }
