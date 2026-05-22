@@ -2275,4 +2275,100 @@ body.bulk-edit-mode .bulk-col {
     justify-content: flex-end;
 }
 
+/* Sticky Year Group Header Styles */
+.year-group {
+    margin-bottom: 2.5rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.year-group-header {
+    position: sticky;
+    top: 8.5rem; /* Sticks below the main filters header */
+    background: linear-gradient(180deg, var(--bg-dark) 0%, rgba(15, 23, 42, 0.95) 85%, rgba(15, 23, 42, 0) 100%);
+    padding: 1.5rem 1rem 1rem 1rem;
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--accent);
+    z-index: 45; /* Below the main header z-index 50 */
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    backdrop-filter: blur(8px);
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.year-group-header::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, var(--accent), transparent);
+    opacity: 0.3;
+}
+
+.year-group:first-of-type .year-group-header {
+    margin-top: 0;
+}
+
+/* Sticky year divider for Table cells */
+.year-divider-cell {
+    position: sticky;
+    top: 8.5rem;
+    background: linear-gradient(180deg, var(--bg-dark) 0%, rgba(15, 23, 42, 0.95) 85%, rgba(15, 23, 42, 0) 100%);
+    backdrop-filter: blur(8px);
+    z-index: 10;
+    font-weight: 700;
+    font-size: 1.25rem;
+    color: var(--accent);
+    padding: 1rem 1.5rem;
+    border-bottom: 2px solid var(--accent);
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Sticky year divider for Card Grid */
+.year-grid-divider {
+    grid-column: 1 / -1;
+    position: sticky;
+    top: 8.5rem;
+    background: linear-gradient(180deg, var(--bg-dark) 0%, rgba(15, 23, 42, 0.95) 85%, rgba(15, 23, 42, 0) 100%);
+    backdrop-filter: blur(8px);
+    z-index: 10;
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: var(--accent);
+    padding: 1rem 0.5rem;
+    margin-top: 1.5rem;
+    margin-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.year-grid-divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, var(--accent), transparent);
+    opacity: 0.3;
+}
+
+/* Force table-container to allow vertical sticky positioning on desktop */
+.table-container {
+    overflow-x: visible !important;
+}
+
+/* Mobile Responsive adjustment */
+@media (max-width: 768px) {
+    .year-group-header {
+        top: 4.5rem; /* Different top since header is different size on mobile */
+        font-size: 1.25rem;
+    }
+    .table-container {
+        overflow-x: auto !important; /* Allow horizontal scroll on mobile */
+    }
+}
+
 /* End of Styles */

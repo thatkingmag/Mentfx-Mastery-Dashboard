@@ -2,8 +2,64 @@
  * Mentfx Tracker Module
  */
 window.MentfxTracker = {
+    populateYearFilter: function() {
+        const yearFilter = document.getElementById('year-filter');
+        if (!yearFilter || this.yearFilterPopulated) return;
+        
+        const S = window.MentfxState;
+        const years = new Set();
+        S.appData.forEach(wb => {
+            const yearMatch = wb.monthGroup.match(/\d{4}/);
+            if (yearMatch) years.add(yearMatch[0]);
+        });
+        
+        const sortedYears = Array.from(years).sort();
+        sortedYears.forEach(year => {
+            const opt = document.createElement('option');
+            opt.value = year;
+            opt.textContent = year;
+            yearFilter.appendChild(opt);
+        });
+        this.yearFilterPopulated = true;
+    },
+
+    getFilteredData: function() {
+        const S = window.MentfxState;
+        const searchFilter = document.getElementById('search-filter');
+        const statusFilter = document.getElementById('status-filter');
+        const ratingFilter = document.getElementById('rating-filter');
+        const yearFilter = document.getElementById('year-filter');
+
+        const term = searchFilter ? searchFilter.value.toLowerCase() : '';
+        const stat = statusFilter ? statusFilter.value : 'All';
+        const rat = ratingFilter?.value || 'All';
+        const yearVal = yearFilter?.value || 'All';
+
+        return S.appData.filter(wb => {
+            const matchInTags = (wb.tags || []).some(t => t.toLowerCase().includes(term));
+            if (stat !== 'All' && wb.status !== stat) return false;
+            
+            // Filter by Year
+            const yearMatch = wb.monthGroup.match(/\d{4}/);
+            const year = yearMatch ? yearMatch[0] : 'Other';
+            if (yearVal !== 'All' && year !== yearVal) return false;
+
+            if (rat !== 'All') {
+                const r = wb.rating || 0;
+                if (rat === '0') { if (r !== 0) return false; }
+                else if (r < parseInt(rat)) return false;
+            }
+            if (term && !wb.name.toLowerCase().includes(term) && (!wb.notes || !wb.notes.toLowerCase().includes(term)) && !matchInTags) return false;
+            return true;
+        });
+    },
+
     renderCurrentView: function() {
         const S = window.MentfxState;
+        
+        // Populate Year Filter options dynamically
+        this.populateYearFilter();
+        
         let mode = S.currentViewMode;
         
         // Update Progress Bar
@@ -48,7 +104,7 @@ window.MentfxTracker = {
     },
 
     setupListeners: function() {
-        ['search-filter', 'status-filter', 'rating-filter', 'sort-filter'].forEach(id => {
+        ['search-filter', 'status-filter', 'rating-filter', 'sort-filter', 'year-filter'].forEach(id => {
             const el = document.getElementById(id);
             if (el) {
                 el.addEventListener('input', () => this.renderCurrentView());
@@ -60,35 +116,38 @@ window.MentfxTracker = {
     renderTable: function() {
         const S = window.MentfxState;
         const trackerBody = document.getElementById('tracker-body');
-        const searchFilter = document.getElementById('search-filter');
-        const statusFilter = document.getElementById('status-filter');
-        const ratingFilter = document.getElementById('rating-filter');
         const sortFilter = document.getElementById('sort-filter');
 
         if (!trackerBody) return;
 
-        const term = searchFilter.value.toLowerCase();
-        const stat = statusFilter.value;
-        const rat = ratingFilter?.value || 'All';
         const sortBy = sortFilter?.value || 'default';
         
         trackerBody.innerHTML = '';
         
-        let filtered = S.appData.filter(wb => {
-            const matchInTags = (wb.tags || []).some(t => t.toLowerCase().includes(term));
-            if (stat !== 'All' && wb.status !== stat) return false;
-            if (rat !== 'All') {
-                const r = wb.rating || 0;
-                if (rat === '0') { if (r !== 0) return false; }
-                else if (r < parseInt(rat)) return false;
-            }
-            if (term && !wb.name.toLowerCase().includes(term) && (!wb.notes || !wb.notes.toLowerCase().includes(term)) && !matchInTags) return false;
-            return true;
-        });
-
+        let filtered = this.getFilteredData();
         filtered = this.getSortedData(filtered, sortBy);
 
+        const isChronological = ['default', 'newest', 'year-oldest', 'year-newest'].includes(sortBy);
+        let currentYear = null;
+
         filtered.forEach(wb => {
+            // Render Year Divider header in Table if chronological sorting is active
+            if (isChronological) {
+                const yearMatch = wb.monthGroup.match(/\d{4}/);
+                const year = yearMatch ? yearMatch[0] : 'Other';
+                if (year !== currentYear) {
+                    currentYear = year;
+                    const dividerRow = document.createElement('tr');
+                    dividerRow.className = 'year-divider-row';
+                    dividerRow.innerHTML = `
+                        <td colspan="8" class="year-divider-cell">
+                            ${year}
+                        </td>
+                    `;
+                    trackerBody.appendChild(dividerRow);
+                }
+            }
+
             const row = document.createElement('tr');
             const isDone = wb.status === 'Completed';
             const isSelected = S.selectedItems.has(wb.id);
@@ -111,12 +170,31 @@ window.MentfxTracker = {
     },
 
     getSortedData: function(data, sortBy) {
+        const S = window.MentfxState;
         const sorted = [...data];
         switch (sortBy) {
             case 'newest': return sorted.reverse();
             case 'rating-high': return sorted.sort((a, b) => (b.rating || 0) - (a.rating || 0));
             case 'rating-low': return sorted.sort((a, b) => (a.rating || 0) - (b.rating || 0));
             case 'name-az': return sorted.sort((a, b) => a.name.localeCompare(b.name));
+            case 'year-newest':
+                return sorted.sort((a, b) => {
+                    const yearA = parseInt(a.monthGroup.match(/\d{4}/)?.[0] || 0);
+                    const yearB = parseInt(b.monthGroup.match(/\d{4}/)?.[0] || 0);
+                    if (yearB !== yearA) return yearB - yearA;
+                    const idxA = S.appData.indexOf(a);
+                    const idxB = S.appData.indexOf(b);
+                    return idxB - idxA;
+                });
+            case 'year-oldest':
+                return sorted.sort((a, b) => {
+                    const yearA = parseInt(a.monthGroup.match(/\d{4}/)?.[0] || 0);
+                    const yearB = parseInt(b.monthGroup.match(/\d{4}/)?.[0] || 0);
+                    if (yearA !== yearB) return yearA - yearB;
+                    const idxA = S.appData.indexOf(a);
+                    const idxB = S.appData.indexOf(b);
+                    return idxA - idxB;
+                });
             default: return sorted;
         }
     },
@@ -127,23 +205,28 @@ window.MentfxTracker = {
         if (!container) return;
         
         container.innerHTML = '';
-        const searchFilter = document.getElementById('search-filter');
-        const statusFilter = document.getElementById('status-filter');
         const sortElement = document.getElementById('sort-filter');
-        const sortBy = sortElement ? sortElement.value : 'oldest';
-        
-        const term = searchFilter.value.toLowerCase();
-        const stat = statusFilter.value;
+        const sortBy = sortElement ? sortElement.value : 'default';
 
-        let filtered = S.appData.filter(wb => {
-            if (stat !== 'All' && wb.status !== stat) return false;
-            if (term && !wb.name.toLowerCase().includes(term)) return false;
-            return true;
-        });
-
+        let filtered = this.getFilteredData();
         filtered = this.getSortedData(filtered, sortBy);
 
+        const isChronological = ['default', 'newest', 'year-oldest', 'year-newest'].includes(sortBy);
+        let currentYear = null;
+
         filtered.forEach(wb => {
+            if (isChronological) {
+                const yearMatch = wb.monthGroup.match(/\d{4}/);
+                const year = yearMatch ? yearMatch[0] : 'Other';
+                if (year !== currentYear) {
+                    currentYear = year;
+                    const divider = document.createElement('div');
+                    divider.className = 'year-grid-divider';
+                    divider.textContent = year;
+                    container.appendChild(divider);
+                }
+            }
+
             const card = document.createElement('div');
             const isSelected = S.selectedItems.has(wb.id);
             card.className = `webinar-card glass ${isSelected ? 'selected' : ''}`;
