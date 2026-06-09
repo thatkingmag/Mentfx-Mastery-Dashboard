@@ -2578,21 +2578,45 @@ window.webinarData = [
     {
         "id": "Webinar 257",
         "name": "Webinar 257",
-        "link": "",
+        "link": "https://youtu.be/Shs-TwCkupw",
         "monthGroup": "May 2026",
         "status": "Not Started",
         "notes": "",
         "keyTakeaways": "",
-        "rating": 0
+        "rating": 0,
+        "understanding": 0,
+        "tags": []
     },
     {
         "id": "Webinar 258",
         "name": "Webinar 258",
-        "link": "",
+        "link": "https://www.youtube.com/watch?v=309Z70siBZY",
         "monthGroup": "May 2026",
         "status": "Not Started",
         "notes": "",
         "keyTakeaways": "",
-        "rating": 0
+        "rating": 0,
+        "understanding": 0,
+        "tags": []
+    },
+    {
+        "id": "webinar-259-1781018653509",
+        "name": "Webinar 259",
+        "link": "https://youtu.be/TlnyCK19kAI",
+        "status": "Not Started",
+        "notes": "",
+        "rating": 0,
+        "tags": [],
+        "monthGroup": "May 2026"
+    },
+    {
+        "id": "webinar-260-1781018778965",
+        "name": "Webinar 260",
+        "link": "https://youtu.be/N_JFdjaCYtw",
+        "status": "Not Started",
+        "notes": "",
+        "rating": 0,
+        "tags": [],
+        "monthGroup": "June 2026"
     }
 ];
